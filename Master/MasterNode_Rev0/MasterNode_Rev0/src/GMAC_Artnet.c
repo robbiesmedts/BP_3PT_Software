@@ -7,17 +7,12 @@
 
 #include "GMAC_Artnet.h"
 
-uint32_t read_dev_gmac(void)
-{
-	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer, sizeof(gs_uc_eth_buffer), &ul_frm_size);
-}
-
 /** The MAC address used for the test */
 uint8_t gs_uc_mac_address[] =
 { ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
 
 /** The IP address used for test (ping ...) */
-static uint8_t gs_uc_ip_address[] =
+uint8_t gs_uc_ip_address[] =
 { ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2, ETHERNET_CONF_IPADDR3 };
 
 /* Art-Net identification string*/
@@ -29,6 +24,9 @@ gmac_device_t gs_gmac_dev;
 
 /** Buffer for ethernet packets */
 volatile uint8_t gs_uc_eth_buffer[GMAC_FRAME_LENTGH_MAX];
+
+/** Buffer for Artnet DMX data */
+uint8_t artnet_data_buffer[512];
 
 uint32_t ul_frm_size;
 volatile uint32_t ul_delay;
@@ -90,6 +88,12 @@ bool init_gmac_ethernet(void)
 	}
 	return 1;
 }
+
+uint32_t read_dev_gmac(void)
+{
+	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer, sizeof(gs_uc_eth_buffer), &ul_frm_size);
+}
+
 /**
  * \brief Process & return the ICMP checksum.
  *
@@ -109,6 +113,13 @@ static uint16_t gmac_icmp_checksum(uint16_t *p_buff, uint32_t ul_len)
 	ul_tmp = (ul_tmp & 0xffff) + (ul_tmp >> 16);
 
 	return (uint16_t) (~ul_tmp);
+}
+
+static void saveDMX(uint8_t *p_uc_data, uint32_t ul_size)
+{
+	p_art_packet_t p_art_packet = (p_art_packet_t) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	
+	memcpy(artnet_data_buffer, p_art_packet->art_data, sizeof(artnet_data_buffer));
 }
 
 /**
@@ -262,19 +273,12 @@ static void gmac_process_ip_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		{
 			controle[i] = p_uc_data[hdr_len+i];
 		}
-/*		//print controle for debugging
-		printf("\n\r");
-		for (i = 0; i < 8; i++)
-		{
-			printf("%d ",controle[i]);
-		}
-		printf("\n\n\r");
-*/
 		/*Check if Art-Net*/
 		if (!compareArray(controle, artnet_id, 8))
 		{	
 			//puts("Art-Net detected");
-			display_artnet_packet(p_uc_data, ul_size);
+			//display_artnet_packet(p_uc_data, ul_size);
+			saveDMX(p_uc_data, ul_size);
 		}
 		
 	}
@@ -359,7 +363,7 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		gmac_process_ip_packet(p_uc_data, ul_size);
 
 		/* Dump the IP header */
-		//gmac_display_ip_packet(&ip_header, ul_size);
+		gmac_display_ip_packet(&ip_header, ul_size);
 		break;
 
 	default:
@@ -429,4 +433,9 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
 		return 1;
 	}
 	return 0;
+}
+
+void proces_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size)
+{
+	gmac_process_eth_packet(p_uc_data, ul_size);
 }

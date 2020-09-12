@@ -18,6 +18,8 @@ extern uint8_t gs_uc_mac_address[];
 extern uint32_t ul_frm_size;
 extern gmac_device_t gs_gmac_dev;
 extern volatile uint8_t gs_uc_eth_buffer[GMAC_FRAME_LENTGH_MAX];
+extern uint8_t artnet_data_buffer[512];
+extern uint8_t gs_uc_ip_address[];
 
 uint32_t read_dev_gmac(void);
 bool init_gmac_ethernet(void);
@@ -27,6 +29,7 @@ void display_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size);
 void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size);
 void display_eth_buffer(uint8_t *eth_buffer, uint32_t ul_size);
 char compareArray(uint8_t a[],uint8_t b[],uint8_t size);
+void proces_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size);
 
 
 #endif /* GMAC_ARTNET_H_ */

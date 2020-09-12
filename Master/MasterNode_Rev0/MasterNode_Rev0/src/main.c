@@ -14,25 +14,19 @@
 */
 #include <asf.h>
 #include "GMAC_Artnet.h"
+#include "SAM_SPI.h"
 #include "nRF24.h"
 #include "nRF24L01.h"
 
-
-#ifdef _DEBUG
-#define STRING_EOL    "\r"
-#define STRING_HEADER "-- MasterNode_Rev0 --\r\n" \
-		"-- "BOARD_NAME" --\r\n" \
-		"-- Compiled: "__DATE__" "__TIME__" --"STRING_EOL
-
 /************************************************************************/
-/* Globele variabelen                                                                     */
+/* Global variables                                                                     */
 /************************************************************************/
 
-/* Datapaket standaard.
-   datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
-   destAddr     //adres (6x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
-   dataValue    //variabele (8bits) om binnenkomende/uitgaande data in op te slagen
-   command      //commando (8bits) gestuctureerd volgens command table
+/* Data standard.
+   data communicated in this project follows the next structure to form an uniform protocol.
+   destAddr     //address (32bits) given by the command this is an receiving address or an destination address
+   dataValue    //variable (16bits) to save incoming and outgoing data
+   command      //commando (8bits) structured by command table
 
    command table
    0 = Stop command
@@ -47,6 +41,13 @@ struct dataStruct{
 }dataIn, dataOut;
 
 static const uint32_t listeningPipes[5] = {0x3A3A3AD2UL, 0x3A3A3AC3UL, 0x3A3A3AB4UL, 0x3A3A3AA5UL, 0x3A3A3A96UL}; //unieke adressen gebruikt door de nodes.
+
+#ifdef _DEBUG
+#define STRING_EOL    "\r"
+#define STRING_HEADER "-- MasterNode_Rev0 --\r\n" \
+		"-- "BOARD_NAME" --\r\n" \
+		"-- Compiled: "__DATE__" "__TIME__" --"STRING_EOL
+
 /**
  *  \brief Configure UART console.
  */
@@ -68,6 +69,9 @@ static void configure_console(void)
 
 int main (void)
 {
+	/************************************************************************/
+	/* Initialization of the masterNode                                                  */
+	/************************************************************************/
 	/* Insert system clock initialization code here (sysclk_init()). */
 	sysclk_init();
 	board_init();
@@ -116,8 +120,8 @@ int main (void)
 
 		if (ul_frm_size > 0) {
 			// Handle input frame
-			gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer, ul_frm_size);
-
-			}
+			//gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer, ul_frm_size);
+			proces_artnet_packet((uint8_t *) gs_uc_eth_buffer, ul_frm_size);
+		}
 	}//end loop
 }//end main

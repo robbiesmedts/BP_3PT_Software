@@ -177,8 +177,8 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
- ../src/mini_ip.h ../src/config/conf_eth.h ../src/nRF24.h \
- ../src/nRF24L01.h
+ ../src/mini_ip.h ../src/config/conf_eth.h ../src/SAM_SPI.h \
+ ../src/nRF24.h ../src/nRF24L01.h
 
 ../src/asf.h:
 
@@ -557,6 +557,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/mini_ip.h:
 
 ../src/config/conf_eth.h:
+
+../src/SAM_SPI.h:
 
 ../src/nRF24.h:
 
