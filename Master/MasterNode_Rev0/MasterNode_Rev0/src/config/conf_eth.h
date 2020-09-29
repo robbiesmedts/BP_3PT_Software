@@ -85,9 +85,6 @@ extern "C" {
 /** Ethernet MII/RMII mode */
 #define ETH_PHY_MODE                                  GMAC_PHY_MII
 
-/** Support AT24MAC EEPROM with EIA-48 MAC address */
-#define ETH_SUPPORT_AT24MAC
-
 /// @cond 0
 /**INDENT-OFF**/
 #ifdef __cplusplus

@@ -7,6 +7,11 @@
 
 #include "GMAC_Artnet.h"
 
+uint32_t read_dev_gmac(void)
+{
+	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer, sizeof(gs_uc_eth_buffer), &ul_frm_size);
+}
+
 /** The MAC address used for the test */
 uint8_t gs_uc_mac_address[] =
 { ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
@@ -37,14 +42,6 @@ bool init_gmac_ethernet(void)
 	#ifdef ETH_SUPPORT_AT24MAC
 	at24mac_get_mac_address();
 	#endif
-
-	// Display MAC & IP settings
-	printf("-- MAC %x:%x:%x:%x:%x:%x\n\r",
-	gs_uc_mac_address[0], gs_uc_mac_address[1], gs_uc_mac_address[2],
-	gs_uc_mac_address[3], gs_uc_mac_address[4], gs_uc_mac_address[5]);
-
-	printf("-- IP  %d.%d.%d.%d\n\r", gs_uc_ip_address[0], gs_uc_ip_address[1],
-	gs_uc_ip_address[2], gs_uc_ip_address[3]);
 
 	// Wait for PHY to be ready (CAT811: Max400ms)
 	ul_delay = sysclk_get_cpu_hz() / 1000 / 3 * 400;
@@ -89,11 +86,6 @@ bool init_gmac_ethernet(void)
 	return 1;
 }
 
-uint32_t read_dev_gmac(void)
-{
-	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer, sizeof(gs_uc_eth_buffer), &ul_frm_size);
-}
-
 /**
  * \brief Process & return the ICMP checksum.
  *
@@ -119,7 +111,12 @@ static void saveDMX(uint8_t *p_uc_data, uint32_t ul_size)
 {
 	p_art_packet_t p_art_packet = (p_art_packet_t) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 	
-	memcpy(artnet_data_buffer, p_art_packet->art_data, sizeof(artnet_data_buffer));
+	if(p_art_packet->art_OpCode == 0x5000)
+	{
+		memcpy(artnet_data_buffer, p_art_packet->art_data, sizeof(artnet_data_buffer));
+		puts("DMX saved");
+	}
+	
 }
 
 /**
@@ -186,10 +183,15 @@ void display_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size)
 	
 	printf("\n\r");
 	printf("identifier: %c%c%c%c%c%c%c%c\n\r", (char)p_art_packet->art_id[0], (char)p_art_packet->art_id[1], (char)p_art_packet->art_id[2], (char)p_art_packet->art_id[3], (char)p_art_packet->art_id[4], (char)p_art_packet->art_id[5], (char)p_art_packet->art_id[6], (char)p_art_packet->art_id[7]);
+	printf("Opcode: %d\n\r", p_art_packet->art_OpCode);
 	printf("universe %d\n\n\r", p_art_packet->art_uninet);
-	for (long i = 0; i<512; i++)
+	
+	if(p_art_packet->art_OpCode == 0x5000)
 	{
-		printf("Channel %ld: %ld\n\r", i+1, p_art_packet->art_data[i]);
+		for (long i = 0; i<512; i++)
+		{
+			printf("Channel %ld: %ld\n\r", i+1, p_art_packet->art_data[i]);
+		}
 	}
 }
 
@@ -276,9 +278,9 @@ static void gmac_process_ip_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		/*Check if Art-Net*/
 		if (!compareArray(controle, artnet_id, 8))
 		{	
-			//puts("Art-Net detected");
-			//display_artnet_packet(p_uc_data, ul_size);
-			saveDMX(p_uc_data, ul_size);
+			puts("Art-Net detected");
+			display_artnet_packet(p_uc_data, ul_size);
+			saveDMX(p_uc_data, ul_size);	
 		}
 		
 	}
@@ -363,7 +365,7 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		gmac_process_ip_packet(p_uc_data, ul_size);
 
 		/* Dump the IP header */
-		gmac_display_ip_packet(&ip_header, ul_size);
+		//gmac_display_ip_packet(&ip_header, ul_size);
 		break;
 
 	default:

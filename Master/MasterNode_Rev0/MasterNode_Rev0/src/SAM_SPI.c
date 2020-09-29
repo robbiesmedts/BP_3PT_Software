@@ -25,17 +25,16 @@ static void spi_set_clock_configuration(uint8_t configuration)
 	NVIC_EnableIRQ(SPI_IRQn);
 
 	printf("Setting SPI clock #%lu ... \n\r", (unsigned long)gs_ul_spi_clock);
-	spi_master_initialize();
+	//spi_master_initialize();
 }
 
 /**
  * \brief Initialize SPI as master.
  */
 void spi_master_initialize(void)
-{
-	puts("-I- Initialize SPI as master\r");
-	
+{	
 	spi_set_clock_configuration(gs_ul_spi_clock);
+	puts("-I- Initialize SPI as master\r");
 	
 	/* Configure an SPI peripheral. */
 	spi_enable_clock(SPI0);
