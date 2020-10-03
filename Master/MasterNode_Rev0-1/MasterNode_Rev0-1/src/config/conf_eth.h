@@ -85,6 +85,7 @@ extern "C" {
 /** Ethernet MII/RMII mode */
 #define ETH_PHY_MODE                                  GMAC_PHY_RMII
 
+#define ETH_SUPPORT_AT24MAC
 /// @cond 0
 /**INDENT-OFF**/
 #ifdef __cplusplus

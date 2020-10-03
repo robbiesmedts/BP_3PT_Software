@@ -356,23 +356,35 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 	ip_header_t ip_header;
 	us_pkt_format = SWAP16(p_eth->et_protlen);
 
-	switch (us_pkt_format) {
-	/* ARP Packet format */
-	case ETH_PROT_ARP:
-		/* Process the ARP packet */
-		gmac_process_arp_packet(p_uc_data, ul_size);
-
-		break;
-
-	/* IP protocol frame */
-	case ETH_PROT_IP:
+	if (us_pkt_format == ETH_PROT_IP)
+	{
 		/* Backup the header */
 		memcpy(&ip_header, p_ip_header, sizeof(ip_header_t));
 
 		/* Process the IP packet */
 		gmac_process_ip_packet(p_uc_data, ul_size);
+	}
+	else
+	{
+		printf("=== Default w_pkt_format= 0x%X===\n\r", us_pkt_format);
+	}
+/*	switch (us_pkt_format) {
+	// ARP Packet format
+	case ETH_PROT_ARP:
+		// Process the ARP packet
+		gmac_process_arp_packet(p_uc_data, ul_size);
 
-		/* Dump the IP header */
+		break;
+
+	// IP protocol frame
+	case ETH_PROT_IP:
+		// Backup the header
+		memcpy(&ip_header, p_ip_header, sizeof(ip_header_t));
+
+		// Process the IP packet
+		gmac_process_ip_packet(p_uc_data, ul_size);
+
+		// Dump the IP header
 		//gmac_display_ip_packet(&ip_header, ul_size);
 		break;
 
@@ -380,6 +392,7 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		printf("=== Default w_pkt_format= 0x%X===\n\r", us_pkt_format);
 		break;
 	}
+	*/
 }
 
 /*
