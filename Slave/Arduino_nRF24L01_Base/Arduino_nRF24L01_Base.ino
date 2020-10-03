@@ -14,7 +14,7 @@
    set Com with a baud-rate of 115200
 */
 #define DEBUG
-#define CONTINIOUS
+//#define CONTINIOUS
 
 #include <SPI.h>
 #include <nRF24L01.h>
@@ -41,6 +41,7 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
    1 = use sensor for own actuator
    2 = send sensor value to other actuator
    3 = receive sensor value for own actuator
+   4 = reset node
 */
 struct dataStruct {
   uint32_t destAddr;
@@ -138,7 +139,11 @@ void loop() {
 #endif
       analogWrite(act_pin, dataIn.dataValue);
       break;
-
+    case 4:
+#ifdef DEBUG
+      Serial.print("reset node");
+#endif
+      //reset node
     default:
       //do nothing
       break;
@@ -197,7 +202,11 @@ void loop() {
 #endif
         analogWrite(act_pin, dataIn.dataValue);
         break;
-
+      case 4:
+#ifdef DEBUG
+        Serial.print("reset node");
+#endif
+        //reset node
       default:
         //do nothing
         break;
