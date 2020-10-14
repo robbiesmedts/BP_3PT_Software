@@ -1,0 +1,3 @@
+DONE - Art-Net OpCode moet gecontrolleerd worden op OpOutput / OpDmx (0x5000) ArtDmx wordt met refreshrate Dmx verzonden
+DONE - Art-Net broadcast
+Art-Net Unicast
