@@ -13,8 +13,12 @@
  * 
  **About the hardware*
  *
- *
- *
+ * Software to be build for the Arduino Nano
+ * input and output modules are:
+ * - Velleman VMA325 color sensor
+ * - SRD-05VDC relais module
+ * 
+ * 
  * flow altering defined variables:
  * DEBUG
  *      enables all the debugging functionality and sends informational data over Serial COM port to an connected PC (baud 115200)
@@ -273,7 +277,7 @@ void TSC_WB(int Level0, int Level1){
   g_count = 0;
   g_flag ++;
   TSC_FilterColor(Level0, Level1);
-  Timer1.setPeriod(1000000);
+  Timer1.setPeriod(1000000); //value in microseconds
 }
 
 /* Select the filter color
@@ -299,16 +303,15 @@ void nRF_IRQ() {
 }
 
 //TSC230 interrupt call
-void TSC_Count()
-{
+void TSC_Count(){
   g_count++;
 }
+
 /* Timer1 callback interrupt
   select action based on g_flag
   saves the cycle counter
 */
-void TSC_Callback()
-{
+void TSC_Callback(){
   switch (g_flag)
   {
     case 0:
