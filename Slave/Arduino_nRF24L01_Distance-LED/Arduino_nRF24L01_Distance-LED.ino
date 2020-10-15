@@ -1,17 +1,22 @@
-/*
-   Start-up for the Arduino Sensor/Actuator side of the project
-
-   What it should do:
-
-   Read sensor value
-   1) use value for actuator
-   2) Send value at an interval back to motherboard
-   2.5) receive sensor value from motherboard for actuator
-*/
-/*
-   Uncomment in need of debugging
-   when in use, Arduino send every action to the Serial Com port
-   set Com with a baud-rate of 115200
+/* About the software
+ *  
+ * Start-up for the Arduino Sensor/Actuator side of the project
+ * What it should do:
+ * receive commando's adressed to it's address,
+ * depending on the commando one of the following actions:
+ * 
+ * 0) do nothing / stop the current action
+ * 1) read sensor value and use it for own actuator
+ * 2) read sensor value and send to received address
+ * 3) read received data and apply to actuator
+ * 4) reset the node / recalibrate sensor & actuator
+ * 
+ * flow altering defined variables:
+ * DEBUG
+ *      enables all the debugging functionality and sends informational data over Serial COM port to an connected PC (baud 115200)
+ * CONTINIOUS
+ *      enables the node to to excecute a given command until an other command is received.
+ *      if CONTINIOUS is not active a command is excecuted once after the command is received.
 */
 #define DEBUG
 //#define CONTINIOUS
@@ -19,15 +24,14 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include <TimerOne.h>
 
 #ifdef DEBUG
 #include <printf.h>
 #endif
 
 RF24 radio(9, 10); //CE, CSN
-const byte localAddr = 2; //node x in systeem // node 0 is masternode
-const uint32_t listeningPipes[5] = {0x3A3A3AD2UL, 0x3A3A3AC3UL, 0x3A3A3AB4UL, 0x3A3A3AA5UL, 0x3A3A3A96UL};
+const byte localAddr = 1; //node x in systeem // node 0 is masternode
+const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
 /* Datapaket standaard.
@@ -69,7 +73,9 @@ void setup() {
   */
   radio.begin();
   radio.setAddressWidth(4);
-  radio.openReadingPipe(0, listeningPipes[localAddr]);
+  for (uint8_t i = 0; i < 4; i++)
+  radio.openReadingPipe(0, listeningPipes[localAddr] + i);
+  
   radio.setPALevel(RF24_PA_MIN);
   radio.startListening();
 
@@ -84,7 +90,7 @@ void loop() {
   uint16_t currentValue;
   uint32_t currentDestAddr;
   
-  /* uitvoering op interrupt basis
+  /* Uitvoering op interrupt basis
    * commando wordt opgeslagen
    * en uitgevoerd tot een ander commando verzonden wordt 
   */
@@ -125,7 +131,7 @@ void loop() {
       Serial.print("\n\rdata send: ");
       Serial.println(dataOut.dataValue);
 #endif
-      radio.openReadingPipe(0,listeningPipes[localAddr]);
+      //radio.openReadingPipe(0,listeningPipes[localAddr]);
       radio.startListening();
       break;
 
@@ -155,7 +161,10 @@ void loop() {
   }// end switch
 #endif
 
-/* verloop uitvoering als er commando binnen komt */
+/* 
+ *  Verloop uitvoering als er commando binnen komt.
+ *  Verloopt op interruptbasis om processing te verlagen
+*/
 #ifndef CONTINIOUS
   if(b_rx_ready){
     b_rx_ready = 0; 
@@ -188,7 +197,7 @@ void loop() {
         Serial.print("\n\rdata send: ");
         Serial.println(dataOut.dataValue);
 #endif
-        radio.openReadingPipe(0,listeningPipes[localAddr]);
+        //radio.openReadingPipe(0,listeningPipes[localAddr]);
         radio.startListening();
         break;
 

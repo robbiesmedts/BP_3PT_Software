@@ -48,7 +48,7 @@ struct dataStruct{
 	uint8_t command;
 }dataIn, dataOut;
 
-static const uint32_t listeningPipes[5] = {0x3A3A3AD2UL, 0x3A3A3AC3UL, 0x3A3A3AB4UL, 0x3A3A3AA5UL, 0x3A3A3A96UL}; //unieke adressen gebruikt door de nodes.
+static const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; //unieke adressen gebruikt door de nodes.
 static uint16_t artnetDmxAddress = 1;
 static const uint8_t nodes = 4;
 

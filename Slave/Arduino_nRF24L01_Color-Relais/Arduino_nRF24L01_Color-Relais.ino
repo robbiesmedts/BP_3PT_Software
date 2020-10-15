@@ -1,17 +1,26 @@
-/*
-   Start-up for the Arduino Sensor/Actuator side of the project
-
-   What it should do:
-
-   Read sensor value
-   1) use value for actuator
-   2) Send value at an interval back to motherboard
-   2.5) receive sensor value from motherboard for actuator
-*/
-/*
-   Uncomment in need of debugging
-   when in use, Arduino send every action to the Serial Com port
-   set Com with a baud-rate of 115200
+/**About the software*
+ *  
+ * Start-up for the Arduino Sensor/Actuator side of the project
+ * What it should do:
+ * receive commando's adressed to it's address,
+ * depending on the commando one of the following actions:
+ * 
+ * 0) do nothing / stop the current action
+ * 1) read sensor value and use it for own actuator
+ * 2) read sensor value and send to received address
+ * 3) read received data and apply to actuator
+ * 4) reset the node / recalibrate sensor & actuator
+ * 
+ **About the hardware*
+ *
+ *
+ *
+ * flow altering defined variables:
+ * DEBUG
+ *      enables all the debugging functionality and sends informational data over Serial COM port to an connected PC (baud 115200)
+ * CONTINIOUS
+ *      enables the node to to excecute a given command until an other command is received.
+ *      if CONTINIOUS is not active a command is excecuted once after the command is received.
 */
 #define DEBUG
 //#define CONTINIOUS
@@ -26,9 +35,13 @@
 #endif
 
 RF24 radio(9, 10); //CE, CSN
-const byte localAddr = 2; //node x in systeem // node 0 is masternode
-const uint32_t listeningPipes[5] = {0x3A3A3AD2UL, 0x3A3A3AC3UL, 0x3A3A3AB4UL, 0x3A3A3AA5UL, 0x3A3A3A96UL};
+const byte localAddr = 1; //node x in systeem // node 0 is masternode
+const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
+int g_count = 0;  //count the frequency
+int g_array[3];   //store the RGB value
+int g_flag = 0;   //filter of RGB queue
+float g_SF[3];    //save the RGB scale factor
 
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
@@ -49,27 +62,46 @@ struct dataStruct {
   uint8_t command;
 } dataIn, dataOut;
 
-int sens_pin = A1; //analog 0
-int act_pin = 5; //D5 and D6 are both connected to the Timer0 counter
-const int interrupt_pin = 2;
+/* Pin definitions */
+const int interrupt_pin = 2; //nRF24L01 interrupt
+
+const int C_OUT = 3; //TCS230 color value interrupt
+const int S0 = 4; //output scaling 1
+const int S1 = 5; //output scaling 2
+const int S2 = 6; //photodiode selection 1
+const int S3 = 7; //photodiode selection 2
+const int LED = A0;
+
+const int RELAIS = A5;
 
 void setup() {
-  
-  pinMode(sens_pin, INPUT); //if reading a switch with no external pull-up resistor, change it to INPUT_PULLUP
-  pinMode(interrupt_pin, INPUT_PULLUP);
-  pinMode(act_pin, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(interrupt_pin), nRF_IRQ, LOW);
-
 #ifdef DEBUG
   Serial.begin(115200);
   printf_begin();
 #endif
+
+  /*
+   * Initialisation of the color sensor
+   */
+  TCS_Init();
+  Timer1.initialize(); //default is 1s
+  Timer1.attachInterrupt(TCS_Callback);
+  attachInterrupt(digitalPinToInterrupt(C_OUT), TSC_Count, RISING); //INT1
+
+  pinMode(RELAIS, OUTPUT);
+  
+  //nRf24L01 pin configurations
+  pinMode(interrupt_pin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(interrupt_pin), nRF_IRQ, LOW); //INT0
+  
   /*
      Initailisation of the nRF24L01 chip
   */
   radio.begin();
   radio.setAddressWidth(4);
-  radio.openReadingPipe(0, listeningPipes[localAddr]);
+  for (uint8_t i = 0; i < 4; i++)
+    radio.openReadingPipe(0, listeningPipes[localAddr] + i);
+    
   radio.setPALevel(RF24_PA_MIN);
   radio.startListening();
 
@@ -84,7 +116,7 @@ void loop() {
   uint16_t currentValue;
   uint32_t currentDestAddr;
   
-  /* uitvoering op interrupt basis
+  /* Uitvoering op interrupt basis
    * commando wordt opgeslagen
    * en uitgevoerd tot een ander commando verzonden wordt 
   */
@@ -125,7 +157,7 @@ void loop() {
       Serial.print("\n\rdata send: ");
       Serial.println(dataOut.dataValue);
 #endif
-      radio.openReadingPipe(0,listeningPipes[localAddr]);
+      //radio.openReadingPipe(0,listeningPipes[localAddr]);
       radio.startListening();
       break;
 
@@ -155,7 +187,10 @@ void loop() {
   }// end switch
 #endif
 
-/* verloop uitvoering als er commando binnen komt */
+/* 
+ *  Verloop uitvoering als er commando binnen komt.
+ *  Verloopt op interruptbasis om processing te verlagen
+*/
 #ifndef CONTINIOUS
   if(b_rx_ready){
     b_rx_ready = 0; 
@@ -188,7 +223,7 @@ void loop() {
         Serial.print("\n\rdata send: ");
         Serial.println(dataOut.dataValue);
 #endif
-        radio.openReadingPipe(0,listeningPipes[localAddr]);
+        //radio.openReadingPipe(0,listeningPipes[localAddr]);
         radio.startListening();
         break;
 
@@ -215,8 +250,106 @@ void loop() {
 #endif  
 } //end loop
 
+//init TSC230 and setting frequency.
+void TSC_Init(){
+  //output frequency scaling selection ports
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  //Photo diode selection ports
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+  //output frequency
+  pinMode(C_OUT, INPUT);
+  //White LEDs, active LOW
+  pinMode(LED, OUTPUT);
+
+  digitalWrite(S0, LOW);// OUTPUT FREQUENCY SCALING 2%
+  digitalWrite(S1, HIGH);
+  digitalWrite(LED, HIGH); // LOW = Switch ON the 4 LED's , HIGH = switch off the 4 LED's
+}
+
+// clear counter and increment flag
+void TSC_WB(int Level0, int Level1){
+  g_count = 0;
+  g_flag ++;
+  TSC_FilterColor(Level0, Level1);
+  Timer1.setPeriod(1000000);
+}
+
+/* Select the filter color
+  LOW   LOW   Red
+  LOW   HIGH  Blue
+  HIGH  LOW   Clear (no filter)
+  HIGH  HIGH  Green
+*/
+void TSC_FilterColor(int Level01, int Level02){
+  if (Level01 != 0)
+    Level01 = HIGH;
+  if (Level02 != 0)
+    Level02 = HIGH;
+  digitalWrite(S2, Level01);
+  digitalWrite(S3, Level02);
+}
+
+//nRF24L01 interrupt call
 void nRF_IRQ() {
   noInterrupts();
   radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
   interrupts();
+}
+
+//TSC230 interrupt call
+void TSC_Count()
+{
+  g_count++;
+}
+/* Timer1 callback interrupt
+  select action based on g_flag
+  saves the cycle counter
+*/
+void TSC_Callback()
+{
+  switch (g_flag)
+  {
+    case 0:
+      Serial.println("->WB Start");
+      TSC_WB(LOW, LOW);
+      break;
+    case 1:
+      Serial.print("->Frequency R=");
+      Serial.println(g_count);
+      g_array[0] = g_count;
+      TSC_WB(HIGH, HIGH);
+      break;
+    case 2:
+      Serial.print("->Frequency G=");
+      Serial.println(g_count);
+      g_array[1] = g_count;
+      TSC_WB(LOW, HIGH);
+      break;
+    case 3:
+      Serial.print("->Frequency B=");
+      Serial.println(g_count);
+      Serial.println("->WB End");
+      g_array[2] = g_count;
+      TSC_WB(HIGH, LOW);
+      break;
+    default:
+      g_count = 0;
+      g_flag = 0;
+      for (int i = 0; i < 3; i++)
+        Serial.println(g_array[i]);
+
+      g_SF[0] = 255.0 / g_array[0]; //R Scale factor
+      g_SF[1] = 255.0 / g_array[1] ; //G Scale factor
+      g_SF[2] = 255.0 / g_array[2] ; //B Scale factor
+
+      Serial.print("R Scale factor: ");
+      Serial.println(g_SF[0], 4);
+      Serial.print("G Scale factor: ");
+      Serial.println(g_SF[1], 4);
+      Serial.print("B Scale factor: ");
+      Serial.println(g_SF[2], 4);
+      break;
+  }
 }
