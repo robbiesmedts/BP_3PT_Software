@@ -312,8 +312,7 @@ void TSC_Count(){
   saves the cycle counter
 */
 void TSC_Callback(){
-  switch (g_flag)
-  {
+  switch (g_flag){
     case 0:
       Serial.println("->WB Start");
       TSC_WB(LOW, LOW);
