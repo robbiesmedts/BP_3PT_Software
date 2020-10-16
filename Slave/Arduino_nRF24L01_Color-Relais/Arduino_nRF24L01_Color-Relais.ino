@@ -11,6 +11,8 @@
  * 3) read received data and apply to actuator
  * 4) reset the node / recalibrate sensor & actuator
  * 
+ * When the sensor is used, the received value represents the compared color value
+ * 
  **About the hardware*
  *
  * Software to be build for the Arduino Nano
@@ -32,7 +34,6 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include <TimerOne.h>
 
 #ifdef DEBUG
 #include <printf.h>
@@ -42,15 +43,12 @@ RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 1; //node x in systeem // node 0 is masternode
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
-int g_count = 0;  //count the frequency
-int g_array[3];   //store the RGB value
-int g_flag = 0;   //filter of RGB queue
-float g_SF[3];    //save the RGB scale factor
+uint8_t RGB[3] = {0, 0, 0};
 
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
    destAddr     //adres (6x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
-   dataValue    //variabele (8bits) om binnenkomende/uitgaande data in op te slagen
+   dataValue    //variabele (16bits) om binnenkomende/uitgaande data in op te slagen
    command      //commando (8bits) gestuctureerd volgens command table
 
    command table
@@ -88,9 +86,6 @@ void setup() {
    * Initialisation of the color sensor
    */
   TCS_Init();
-  Timer1.initialize(); //default is 1s
-  Timer1.attachInterrupt(TCS_Callback);
-  attachInterrupt(digitalPinToInterrupt(C_OUT), TSC_Count, RISING); //INT1
 
   pinMode(RELAIS, OUTPUT);
   
@@ -207,11 +202,12 @@ void loop() {
     switch (dataIn.command){
       case 0:
         //stop command, do nothing
-        //analogWrite(act_pin, 0);
+        digitalWrite(RELAIS, LOW);
         break;
 
       case 1: //read sensor and use fo own actuator
-        analogWrite(act_pin, analogRead(sens_pin));
+        TSC_read(RGB);
+        
         break;
 
       case 2: // read sensor and send to other actuator
@@ -267,32 +263,43 @@ void TSC_Init(){
   //White LEDs, active LOW
   pinMode(LED, OUTPUT);
 
-  digitalWrite(S0, LOW);// OUTPUT FREQUENCY SCALING 2%
-  digitalWrite(S1, HIGH);
+  digitalWrite(S0, HIGH);// OUTPUT FREQUENCY SCALING 20%
+  digitalWrite(S1, LOW);
   digitalWrite(LED, HIGH); // LOW = Switch ON the 4 LED's , HIGH = switch off the 4 LED's
 }
 
-// clear counter and increment flag
-void TSC_WB(int Level0, int Level1){
-  g_count = 0;
-  g_flag ++;
-  TSC_FilterColor(Level0, Level1);
-  Timer1.setPeriod(1000000); //value in microseconds
-}
+//read the colordata from the TSC230
+void TCS_read(uint8_t* RGB){
+  unsigned long redFrequency, greenFrequency, blueFrequency;
+  
+  // Setting RED (R) filtered photodiodes to be read
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
 
-/* Select the filter color
-  LOW   LOW   Red
-  LOW   HIGH  Blue
-  HIGH  LOW   Clear (no filter)
-  HIGH  HIGH  Green
-*/
-void TSC_FilterColor(int Level01, int Level02){
-  if (Level01 != 0)
-    Level01 = HIGH;
-  if (Level02 != 0)
-    Level02 = HIGH;
-  digitalWrite(S2, Level01);
-  digitalWrite(S3, Level02);
+  // Reading the output frequency
+  redFrequency = pulseIn(C_Out, LOW);
+  // Remaping the value of the RED (R) frequency from 0 to 255
+  RGB[0] = map(redFrequency, 30, 118, 255,0);
+  delay(10);
+  
+  // Setting GREEN (G) filtered photodiodes to be read
+  digitalWrite(S2, HIGH);
+  digitalWrite(S3, HIGH);
+
+  // Reading the output frequency
+  greenFrequency = pulseIn(C_Out, LOW);
+  // Remaping the value of the GREEN (G) frequency from 0 to 255
+  RGB[1] = map(redFrequency, 30, 118, 255,0);
+  delay(10);
+  
+  // Setting BLUE (B) filtered photodiodes to be read
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
+
+  // Reading the output frequency
+  blueFrequency = pulseIn(C_Out, LOW);
+  // Remaping the value of the BLUE (B) frequency from 0 to 255
+  RGB[2] = map(redFrequency, 30, 118, 255,0);
 }
 
 //nRF24L01 interrupt call
@@ -300,58 +307,4 @@ void nRF_IRQ() {
   noInterrupts();
   radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
   interrupts();
-}
-
-//TSC230 interrupt call
-void TSC_Count(){
-  g_count++;
-}
-
-/* Timer1 callback interrupt
-  select action based on g_flag
-  saves the cycle counter
-*/
-void TSC_Callback(){
-  switch (g_flag){
-    case 0:
-      Serial.println("->WB Start");
-      TSC_WB(LOW, LOW);
-      break;
-    case 1:
-      Serial.print("->Frequency R=");
-      Serial.println(g_count);
-      g_array[0] = g_count;
-      TSC_WB(HIGH, HIGH);
-      break;
-    case 2:
-      Serial.print("->Frequency G=");
-      Serial.println(g_count);
-      g_array[1] = g_count;
-      TSC_WB(LOW, HIGH);
-      break;
-    case 3:
-      Serial.print("->Frequency B=");
-      Serial.println(g_count);
-      Serial.println("->WB End");
-      g_array[2] = g_count;
-      TSC_WB(HIGH, LOW);
-      break;
-    default:
-      g_count = 0;
-      g_flag = 0;
-      for (int i = 0; i < 3; i++)
-        Serial.println(g_array[i]);
-
-      g_SF[0] = 255.0 / g_array[0]; //R Scale factor
-      g_SF[1] = 255.0 / g_array[1] ; //G Scale factor
-      g_SF[2] = 255.0 / g_array[2] ; //B Scale factor
-
-      Serial.print("R Scale factor: ");
-      Serial.println(g_SF[0], 4);
-      Serial.print("G Scale factor: ");
-      Serial.println(g_SF[1], 4);
-      Serial.print("B Scale factor: ");
-      Serial.println(g_SF[2], 4);
-      break;
-  }
 }
