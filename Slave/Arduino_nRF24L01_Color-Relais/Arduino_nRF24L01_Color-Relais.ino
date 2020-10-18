@@ -39,6 +39,14 @@
 #include <printf.h>
 #endif
 
+//measured values form color calibration
+#define R_LOW 30
+#define R_HIGH 118
+#define G_LOW 30
+#define G_HIGH 118
+#define B_LOW 30
+#define B_HIGH 118
+
 RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 1; //node x in systeem // node 0 is masternode
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
@@ -63,6 +71,22 @@ struct dataStruct {
   uint16_t dataValue;
   uint8_t command;
 } dataIn, dataOut;
+
+/* List with determent colours
+ * Calibrated with LEE colour gels
+ */
+typedef enum {
+  BLACK = 1
+  RED,      //L106 (Primary Red)
+  ORANGE,   //L105 (Orange)
+  YELLOW,   //L101 (Yellow)
+  GREEN,    //L139 (Primary Green)
+  CYAN,     //L118 (Light Blue)
+  BLUE,     //L132 (Medium Blue)
+  INDIGO,   //L071 (Tokyo Blue)
+  PURPLE,   //L049 (Medium Purple)
+  MAGENTA   //L113 (Magenta)
+}TSCcolor_e;
 
 /* Pin definitions */
 const int interrupt_pin = 2; //nRF24L01 interrupt
@@ -279,8 +303,8 @@ void TCS_read(uint8_t* RGB){
   // Reading the output frequency
   redFrequency = pulseIn(C_Out, LOW);
   // Remaping the value of the RED (R) frequency from 0 to 255
-  RGB[0] = map(redFrequency, 30, 118, 255,0);
-  delay(10);
+  RGB[0] = map(redFrequency, R_LOW, R_HIGH, 255,0);
+  delay(5);
   
   // Setting GREEN (G) filtered photodiodes to be read
   digitalWrite(S2, HIGH);
@@ -289,8 +313,8 @@ void TCS_read(uint8_t* RGB){
   // Reading the output frequency
   greenFrequency = pulseIn(C_Out, LOW);
   // Remaping the value of the GREEN (G) frequency from 0 to 255
-  RGB[1] = map(redFrequency, 30, 118, 255,0);
-  delay(10);
+  RGB[1] = map(redFrequency, G_LOW, G_HIGH, 255,0);
+  delay(5);
   
   // Setting BLUE (B) filtered photodiodes to be read
   digitalWrite(S2, LOW);
@@ -299,7 +323,50 @@ void TCS_read(uint8_t* RGB){
   // Reading the output frequency
   blueFrequency = pulseIn(C_Out, LOW);
   // Remaping the value of the BLUE (B) frequency from 0 to 255
-  RGB[2] = map(redFrequency, 30, 118, 255,0);
+  RGB[2] = map(redFrequency, B_LOW, B_HIGH, 255,0);
+}
+
+/* Returns a color depending on the received color values.
+ * possible colours:
+ * BLACK, RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, INDIGO, PURPLE, MAGENTA
+ */
+TSCcolor_e TSC_Color(uint8_t RGB[])
+{
+  TSCcolor_e result;
+  uint8_t Red = RGB[0];
+  uint8_t Green = RGB[1];
+  uint8_t Blue = RGB[2];
+  
+  if (Red < 10 && Green < 10 && Blue < 10){
+    result = BLACK;
+  }
+  else if(Red > 200 && (Green > 10 && Green < 50) && Blue < 10){
+    result = RED;
+  }
+  else if(Red > 200 && (Green > 50 && Green < 128) && Blue < 10){
+    result = ORANGE;
+  }
+  else if(Red > 200 && Green > 200 && Blue < 50){
+    result = YELLOW;
+  }
+  else if(Red < 10 && Green > 200 && Blue < 10){
+    result = GREEN;
+  }
+  else if(Red < 40 && (Green > 100 && Green < 200) && Blue > 200){
+    result = CYAN;
+  }
+  else if(Red < 10 && (Green > 50 && Green < 150) && Blue > 200){
+    result = BLUE;
+  }
+  else if(Red <10 && Green < 50 && Blue > 100){
+    result = INDIGO;
+  }
+  else if(Red > 200 && Green < 10 && (Blue > 10 && Blue <100)){
+    result = MAGENTA;
+  }  
+  else{
+    result = 0; //Color not identified
+  }
 }
 
 //nRF24L01 interrupt call
