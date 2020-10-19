@@ -20,6 +20,22 @@
  * - Velleman VMA325 color sensor
  * - SRD-05VDC relais module
  * 
+ **How to connect the prototype*
+ * VMA325   ||    Arduino
+ * S0       ||    D4
+ * S1       ||    D5
+ * S2       ||    D6
+ * S3       ||    D7
+ * OUT      ||    D8
+ * OE       ||    A1
+ * LED      ||    A0
+ * GND/G    ||    GND
+ * V        ||    5V
+ * 
+ * Relais   ||    Arduino
+ * S        ||    A5
+ * +        ||    5V
+ * -        ||    GND
  * 
  * flow altering defined variables:
  * DEBUG
@@ -76,16 +92,16 @@ struct dataStruct {
  * Calibrated with LEE colour gels
  */
 typedef enum {
-  BLACK = 1
-  RED,      //L106 (Primary Red)
-  ORANGE,   //L105 (Orange)
-  YELLOW,   //L101 (Yellow)
-  GREEN,    //L139 (Primary Green)
-  CYAN,     //L118 (Light Blue)
-  BLUE,     //L132 (Medium Blue)
-  INDIGO,   //L071 (Tokyo Blue)
-  PURPLE,   //L049 (Medium Purple)
-  MAGENTA   //L113 (Magenta)
+  BLACK = 1,
+  RED = 10,      //L106 (Primary Red)
+  ORANGE = 20,   //L105 (Orange)
+  YELLOW = 30,   //L101 (Yellow)
+  GREEN = 40,    //L139 (Primary Green)
+  CYAN = 50,     //L118 (Light Blue)
+  BLUE = 60,     //L132 (Medium Blue)
+  INDIGO = 70,   //L071 (Tokyo Blue)
+  PURPLE = 80,   //L049 (Medium Purple)
+  MAGENTA = 90   //L113 (Magenta)
 }TSCcolor_e;
 
 /* Pin definitions */
@@ -97,6 +113,7 @@ const int S1 = 5; //output scaling 2
 const int S2 = 6; //photodiode selection 1
 const int S3 = 7; //photodiode selection 2
 const int LED = A0;
+const int OE = A1;
 
 const int RELAIS = A5;
 
@@ -138,6 +155,7 @@ void loop() {
   uint8_t currentCommand;
   uint16_t currentValue;
   uint32_t currentDestAddr;
+  uint8_t color;
   
   /* Uitvoering op interrupt basis
    * commando wordt opgeslagen
@@ -230,18 +248,27 @@ void loop() {
         break;
 
       case 1: //read sensor and use fo own actuator
-        TSC_read(RGB);
-        
+        TCS_read(RGB);
+        color = TSC_Color(RGB);
+        if (color == dataIn.dataValue){
+          digitalWrite(RELAIS, HIGH);
+        }
+        else{
+          digitalWrite(RELAIS, LOW);
+        }
         break;
 
       case 2: // read sensor and send to other actuator
         dataOut.command = 3;
-        dataOut.dataValue = analogRead(sens_pin);
-        dataOut.destAddr = listeningPipes[localAddr];
-        
-        radio.stopListening();
-        radio.openWritingPipe(dataIn.destAddr);//set destination address
-        radio.write(&dataOut, sizeof(dataOut));
+        for (uint8_t i = 0; i < 3; i++)
+        {
+          dataOut.dataValue = RGB[i];
+          dataOut.destAddr = listeningPipes[localAddr]+i;
+
+          radio.stopListening();
+          radio.openWritingPipe(dataIn.destAddr+i);//set destination address
+          radio.write(&dataOut, sizeof(dataOut));
+        }
 #ifdef DEBUG
         printf("%ld", dataIn.destAddr);
         Serial.print("\n\rdata send: ");
@@ -259,7 +286,7 @@ void loop() {
         Serial.print("received data: ");
         Serial.println(dataIn.dataValue);
 #endif
-        analogWrite(act_pin, dataIn.dataValue);
+        digitalWrite(RELAIS, dataIn.dataValue);
         break;
       case 4:
 #ifdef DEBUG
@@ -275,7 +302,7 @@ void loop() {
 } //end loop
 
 //init TSC230 and setting frequency.
-void TSC_Init(){
+void TCS_Init(){
   //output frequency scaling selection ports
   pinMode(S0, OUTPUT);
   pinMode(S1, OUTPUT);
@@ -286,22 +313,28 @@ void TSC_Init(){
   pinMode(C_OUT, INPUT);
   //White LEDs, active LOW
   pinMode(LED, OUTPUT);
+  //Output Enable, active low
+  pinMode(OE, OUTPUT);
 
   digitalWrite(S0, HIGH);// OUTPUT FREQUENCY SCALING 20%
   digitalWrite(S1, LOW);
   digitalWrite(LED, HIGH); // LOW = Switch ON the 4 LED's , HIGH = switch off the 4 LED's
+  digitalWrite(OE, LOW);
 }
 
 //read the colordata from the TSC230
 void TCS_read(uint8_t* RGB){
   unsigned long redFrequency, greenFrequency, blueFrequency;
   
+  //enable the output of the sensor
+  digitalWrite(OE, LOW);
+  
   // Setting RED (R) filtered photodiodes to be read
   digitalWrite(S2, LOW);
   digitalWrite(S3, LOW);
 
   // Reading the output frequency
-  redFrequency = pulseIn(C_Out, LOW);
+  redFrequency = pulseIn(C_OUT, LOW);
   // Remaping the value of the RED (R) frequency from 0 to 255
   RGB[0] = map(redFrequency, R_LOW, R_HIGH, 255,0);
   delay(5);
@@ -311,7 +344,7 @@ void TCS_read(uint8_t* RGB){
   digitalWrite(S3, HIGH);
 
   // Reading the output frequency
-  greenFrequency = pulseIn(C_Out, LOW);
+  greenFrequency = pulseIn(C_OUT, LOW);
   // Remaping the value of the GREEN (G) frequency from 0 to 255
   RGB[1] = map(redFrequency, G_LOW, G_HIGH, 255,0);
   delay(5);
@@ -321,9 +354,12 @@ void TCS_read(uint8_t* RGB){
   digitalWrite(S3, HIGH);
 
   // Reading the output frequency
-  blueFrequency = pulseIn(C_Out, LOW);
+  blueFrequency = pulseIn(C_OUT, LOW);
   // Remaping the value of the BLUE (B) frequency from 0 to 255
   RGB[2] = map(redFrequency, B_LOW, B_HIGH, 255,0);
+
+  //disable TSC output
+  digitalWrite(OE, HIGH);
 }
 
 /* Returns a color depending on the received color values.
