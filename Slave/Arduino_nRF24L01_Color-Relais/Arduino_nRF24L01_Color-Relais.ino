@@ -55,13 +55,20 @@
 #include <printf.h>
 #endif
 
-//measured values form color calibration
-#define R_LOW 30
-#define R_HIGH 118
-#define G_LOW 30
-#define G_HIGH 118
-#define B_LOW 30
-#define B_HIGH 118
+/* Measured values from color calibration
+ * LOW values are measured by high intensities
+ * HIGH values are measured by low intensities
+ * 
+ * the reverse values come from the function used to measure the output frequency.
+ * the requency is meqsured qnd returned in microseconds...
+ * So a high frequency results in a low value in microseconds
+ */
+#define R_LOW 5
+#define R_HIGH 100000
+#define G_LOW 5
+#define G_HIGH 100000
+#define B_LOW 5
+#define B_HIGH 100000
 
 RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 1; //node x in systeem // node 0 is masternode
@@ -162,7 +169,7 @@ void loop() {
    * en uitgevoerd tot een ander commando verzonden wordt 
   */
 #ifdef CONTINIOUS
-  if(b_rx_ready){
+/*  if(b_rx_ready){
     b_rx_ready = 0;
     radio.read(&dataIn, sizeof(dataIn));
 
@@ -220,12 +227,13 @@ void loop() {
     default:
       //do nothing
       break;
-    /* delay om uitvoering te vertragen
-     * uitvoering wordt vertraagd met X ms 
-     * precieze berekening is onbekend, maar 1/x is close enough
-     */
+    // delay om uitvoering te vertragen
+    // uitvoering wordt vertraagd met X ms 
+    // precieze berekening is onbekend, maar 1/x is close enough
+    //
     delay(4);
   }// end switch
+*/
 #endif
 
 /* 
