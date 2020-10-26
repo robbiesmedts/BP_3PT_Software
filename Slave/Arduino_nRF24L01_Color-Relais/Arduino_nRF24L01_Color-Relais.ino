@@ -62,12 +62,17 @@
  * the reverse values come from the function used to measure the output frequency.
  * the requency is meqsured qnd returned in microseconds...
  * So a high frequency results in a low value in microseconds
+ * 
+ * Intensity clip: RGB_LOW values = 3
+ * Complete darkness: RGB_HIGH > 100000
+ * on-board LED: 80 < RGB_LOW < 105
+ * 120 < RGB_HIGH < 160
  */
-#define R_LOW 5
+#define R_LOW 3
 #define R_HIGH 100000
-#define G_LOW 5
+#define G_LOW 3
 #define G_HIGH 100000
-#define B_LOW 5
+#define B_LOW 3
 #define B_HIGH 100000
 
 RF24 radio(9, 10); //CE, CSN
@@ -332,7 +337,7 @@ void TCS_Init(){
 
 //read the colordata from the TSC230
 void TCS_read(uint8_t* RGB){
-  unsigned long redFrequency, greenFrequency, blueFrequency;
+  uint32_t redFrequency, greenFrequency, blueFrequency;
   
   //enable the output of the sensor
   digitalWrite(OE, LOW);
@@ -372,7 +377,7 @@ void TCS_read(uint8_t* RGB){
 
 /* Returns a color depending on the received color values.
  * possible colours:
- * BLACK, RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, INDIGO, PURPLE, MAGENTA
+ * BLACK, RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA
  */
 TSCcolor_e TSC_Color(uint8_t RGB[])
 {
@@ -387,9 +392,6 @@ TSCcolor_e TSC_Color(uint8_t RGB[])
   else if(Red > 200 && (Green > 10 && Green < 50) && Blue < 10){
     result = RED;
   }
-  else if(Red > 200 && (Green > 50 && Green < 128) && Blue < 10){
-    result = ORANGE;
-  }
   else if(Red > 200 && Green > 200 && Blue < 50){
     result = YELLOW;
   }
@@ -401,9 +403,6 @@ TSCcolor_e TSC_Color(uint8_t RGB[])
   }
   else if(Red < 10 && (Green > 50 && Green < 150) && Blue > 200){
     result = BLUE;
-  }
-  else if(Red <10 && Green < 50 && Blue > 100){
-    result = INDIGO;
   }
   else if(Red > 200 && Green < 10 && (Blue > 10 && Blue <100)){
     result = MAGENTA;

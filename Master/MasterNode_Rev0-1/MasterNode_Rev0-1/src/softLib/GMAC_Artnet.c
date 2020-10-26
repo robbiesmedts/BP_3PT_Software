@@ -9,9 +9,13 @@
 
 uint32_t read_dev_gmac(void)
 {
-	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer, sizeof(gs_uc_eth_buffer), &ul_frm_size);
+	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer_rx, sizeof(gs_uc_eth_buffer_rx), &ul_frm_size_rx);
 }
 
+uint32_t write_dev_gmac(void)
+{
+	return gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer_tx, sizeof(gs_uc_eth_buffer_tx), NULL);
+}
 /** The MAC address used for the test */
 uint8_t gs_uc_mac_address[] =
 { ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
@@ -28,12 +32,13 @@ static uint8_t artnet_id[] =
 gmac_device_t gs_gmac_dev;
 
 /** Buffer for ethernet packets */
-volatile uint8_t gs_uc_eth_buffer[GMAC_FRAME_LENTGH_MAX];
+volatile uint8_t gs_uc_eth_buffer_rx[GMAC_FRAME_LENTGH_MAX];
+volatile uint8_t gs_uc_eth_buffer_tx[GMAC_FRAME_LENTGH_MAX];
 
 /** Buffer for Artnet DMX data */
 uint8_t artnet_data_buffer[512];
 
-uint32_t ul_frm_size;
+uint32_t ul_frm_size_rx, ul_frm_size_tx;
 volatile uint32_t ul_delay;
 gmac_options_t gmac_option;
 

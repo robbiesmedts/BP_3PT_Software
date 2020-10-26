@@ -343,9 +343,9 @@ int main (void)
 			continue; // return to while(1){}
 		}
 
-		if (ul_frm_size > 0) {
+		if (ul_frm_size_rx > 0) {
 			// Handle input frame
-			gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer, ul_frm_size);
+			gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
 			artnetToCommand();
 		}//end of process
 	}//end of loop
