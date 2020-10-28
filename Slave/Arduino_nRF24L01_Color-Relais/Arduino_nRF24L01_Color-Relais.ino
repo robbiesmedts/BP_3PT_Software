@@ -410,6 +410,7 @@ TSCcolor_e TSC_Color(uint8_t RGB[])
   else{
     result = 0; //Color not identified
   }
+  return result;
 }
 
 //nRF24L01 interrupt call
