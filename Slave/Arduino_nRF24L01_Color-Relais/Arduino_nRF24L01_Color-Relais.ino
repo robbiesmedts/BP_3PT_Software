@@ -65,7 +65,7 @@
  * 
  * Intensity clip: RGB_LOW values = 3
  * Complete darkness: RGB_HIGH > 100000
- * on-board LED: 80 < RGB_LOW < 105
+ * On-board LED: 80 < RGB_LOW < 105
  * 120 < RGB_HIGH < 160
  */
 #define R_LOW 3
