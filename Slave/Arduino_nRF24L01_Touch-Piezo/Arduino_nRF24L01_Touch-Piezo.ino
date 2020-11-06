@@ -30,7 +30,7 @@
 #endif
 
 RF24 radio(9, 10); //CE, CSN
-const byte localAddr = 1; //node x in systeem // node 0 is masternode
+const byte localAddr = 3; //node x in systeem // node 0 is masternode
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
@@ -49,19 +49,19 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 */
 struct dataStruct {
   uint32_t destAddr;
-  uint16_t dataValue;
-  uint8_t command;
+  uint16_t dataValue = 0;
+  uint8_t command = 0;
 } dataIn, dataOut;
 
-int sens_pin = A1; //analog 0
-int act_pin = 5; //D5 and D6 are both connected to the Timer0 counter
+int touch_pin = A1; //analog 0
+int buzz_pin = 5; //D5 and D6 are both connected to the Timer0 counter
 const int interrupt_pin = 2;
 
 void setup() {
   
-  pinMode(sens_pin, INPUT); //if reading a switch with no external pull-up resistor, change it to INPUT_PULLUP
+  pinMode(touch_pin, INPUT); //if reading a switch with no external pull-up resistor, change it to INPUT_PULLUP
   pinMode(interrupt_pin, INPUT_PULLUP);
-  pinMode(act_pin, OUTPUT);
+  pinMode(buzz_pin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(interrupt_pin), nRF_IRQ, LOW);
 
 #ifdef DEBUG
@@ -74,7 +74,7 @@ void setup() {
   radio.begin();
   radio.setAddressWidth(4);
   for (uint8_t i = 0; i < 4; i++)
-  radio.openReadingPipe(0, listeningPipes[localAddr] + i);
+  radio.openReadingPipe(i, listeningPipes[localAddr] + i);
   
   radio.setPALevel(RF24_PA_MIN);
   radio.startListening();
@@ -85,11 +85,7 @@ void setup() {
 #endif
 }
 
-void loop() {
-  uint8_t currentCommand;
-  uint16_t currentValue;
-  uint32_t currentDestAddr;
-  
+void loop() {  
   /* Uitvoering op interrupt basis
    * commando wordt opgeslagen
    * en uitgevoerd tot een ander commando verzonden wordt 
@@ -98,20 +94,15 @@ void loop() {
   if(b_rx_ready){
     b_rx_ready = 0;
     radio.read(&dataIn, sizeof(dataIn));
-
-    currentCommand = dataIn.command;
-    currentValue = dataIn.dataValue;
-    currentDestAddr = dataIn.destAddr;
 #ifdef DEBUG
       Serial.println("IRQ geweest");
       printf("Current command: %d\n\r", currentCommand);
 #endif
   }//end fetch command
   
-  switch (currentCommand){
+  switch (dataIn.command){
     case 0:
-      //stop command, hold last value
-      //analogWrite(act_pin, 0);
+      analogWrite(buzz_pin, 0);
       break;
 
     case 1: //read sensor and use fo own actuator
@@ -120,7 +111,7 @@ void loop() {
 
     case 2: // read sensor and send to other actuator
       dataOut.command = 3;
-      dataOut.dataValue = analogRead(sens_pin);
+      dataOut.dataValue = analogRead(touch_pin);
       dataOut.destAddr = listeningPipes[localAddr];
         
       radio.stopListening();
@@ -143,7 +134,7 @@ void loop() {
       Serial.print("received data: ");
       Serial.println(dataIn.dataValue);
 #endif
-      analogWrite(act_pin, dataIn.dataValue);
+      analogWrite(buzz_pin, dataIn.dataValue);
       break;
     case 4:
 #ifdef DEBUG
@@ -165,7 +156,7 @@ void loop() {
  *  Verloop uitvoering als er commando binnen komt.
  *  Verloopt op interruptbasis om processing te verlagen
 */
-#ifndef CONTINIOUS
+#else
   if(b_rx_ready){
     b_rx_ready = 0; 
     radio.read(&dataIn, sizeof(dataIn));
@@ -177,16 +168,16 @@ void loop() {
     switch (dataIn.command){
       case 0:
         //stop command, do nothing
-        //analogWrite(act_pin, 0);
+        analogWrite(buzz_pin, 0);
         break;
 
       case 1: //read sensor and use fo own actuator
-        analogWrite(act_pin, analogRead(sens_pin));
+        analogWrite(buzz_pin, analogRead(touch_pin));
         break;
 
       case 2: // read sensor and send to other actuator
         dataOut.command = 3;
-        dataOut.dataValue = analogRead(sens_pin);
+        dataOut.dataValue = analogRead(touch_pin);
         dataOut.destAddr = listeningPipes[localAddr];
         
         radio.stopListening();
@@ -209,7 +200,7 @@ void loop() {
         Serial.print("received data: ");
         Serial.println(dataIn.dataValue);
 #endif
-        analogWrite(act_pin, dataIn.dataValue);
+        analogWrite(buzz_pin, dataIn.dataValue);
         break;
       case 4:
 #ifdef DEBUG
