@@ -23,6 +23,17 @@
  * - RGB LED
  * 
  **How to connect the prototype*
+ *
+ * nRF24L01 ||    Arduino
+ * CE       ||    D9
+ * CSN      ||    D10
+ * MOSI     ||    D11
+ * MISO     ||    D12
+ * SCK      ||    D13
+ * IQR      ||    D2
+ * GND      ||    GND
+ * VCC      ||    3V3
+ *
  * VMA306   ||    Arduino
  * ECHO     ||    A2
  * TRIG     ||    A1
@@ -39,49 +50,57 @@
  * GND      ||    GND
  * DIn      ||    D3
  * 
- * flow altering defined variables:
+ *
+ *
+ * flow altering definitions:
  * DEBUG
  *      enables all the debugging functionality and sends informational data over Serial COM port to an connected PC (baud 115200)
  * CONTINIOUS
- *      enables the node to to excecute a given command until an other command is received.
- *      if CONTINIOUS is not active a command is excecuted once after the command is received.
+ *      enables the node to to execute a given command until an other command is received.
+ *      if CONTINIOUS is not active a command is executed once after the command is received.
+ * INTERRUPT
+ *    Enables the node to receive the nRF data on interrupt basis.
+ *    This is less demanding for the processor, and releases some stress form the nRF network
+ * NO_CONTROL
+ *    This disables the nRF compatibility and the node becomes stand alone and always active
 */
 #define DEBUG
 #define CONTINIOUS
-
+#define INTERRUPT
+//#define NO_CONTROL
 
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
+  
+#ifdef DEBUG
+  #include <printf.h>
+#endif //DEBUG
+
 #include <FastLED.h>
 #include <hsv2rgb.h>
 
-#ifdef DEBUG
-#include <printf.h>
-#endif
-
 #define interrupt_pin 2
 #define LED_pin 3
-#define TRIG A1
-#define ECHO A2
+#define TRIG 5
+#define ECHO 6
 
-#define NUM_LEDS 5
-#define CHIPSET WS2812B
+#define NUM_LEDS 60
 #define COLOR_ORDER GRB
-CRGB leds[NUM_LEDS];
-CHSV hsv(0, 255, 255);
-
 #define BRIGHTNESS 128
+CRGB leds[NUM_LEDS];
+CHSV hsv(0, 255, BRIGHTNESS);
+
+
 #define MIN_DIST 0
-#define MAX_DIST 450
+#define MIN_DIST_CM 5
+#define MAX_DIST 3500
+#define MAX_DIST_CM 60
 
 RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 2; //node x in systeem // node 0 is masternode
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL}; 
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
-uint8_t currentCommand;
-uint16_t currentValue;
-uint32_t currentDestAddr;
 
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
@@ -97,9 +116,9 @@ uint32_t currentDestAddr;
    4 = reset node
 */
 struct dataStruct {
-  uint32_t destAddr;
-  uint16_t dataValue;
-  uint8_t command;
+  uint32_t destAddr = listeningPipes[localAddr];
+  uint16_t dataValue = 0;
+  uint8_t command = 0;
 } dataIn, dataOut;
 
 
@@ -109,17 +128,23 @@ void setup() {
   Serial.begin(115200);
   printf_begin();
 #endif
-  
+
+#ifdef INTERRUPT  
   pinMode(interrupt_pin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interrupt_pin), nRF_IRQ, LOW);
-  pinMode(TRIG, OUTPUT);
-  pinMode(ECHO, INPUT);
-  digitalWrite(TRIG, LOW);
+#endif
 
-  FastLED.addLeds<CHIPSET, LED_pin, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+//Pin assignments for the ultrasone sensor
+  pinMode(ECHO, INPUT);
+  pinMode(TRIG, OUTPUT);
+  digitalWrite(TRIG, LOW);
+  
+//Initialisation of the WS2812B LED
+  FastLED.addLeds<WS2812B, LED_pin, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
   FastLED.setBrightness(BRIGHTNESS);
   
-  // Initailisation of the nRF24L01 chip
+  
+// Initailisation of the nRF24L01 chip
   radio.begin();
   radio.setAddressWidth(4);
   for (uint8_t i = 0; i < 3; i++)
@@ -129,166 +154,269 @@ void setup() {
   radio.startListening();
 
 #ifdef DEBUG
-  //print all settings of nRF24L01
+//print all settings of nRF24L01
   radio.printDetails();
 #endif
 }
 
 void loop() {
-  
-  /* Uitvoering op interrupt basis
-   * commando wordt opgeslagen
-   * en uitgevoerd tot een ander commando verzonden wordt 
-  */
+  long l_distance;
+
+#ifdef INTERRUPT  
+/* Uitvoering op interrupt basis
+ * commando wordt opgeslagen
+ * en uitgevoerd tot een ander commando verzonden wordt
+ * of uitvoering gebeurd enkel wanneer er een commando binnenkomt 
+*/
 #ifdef CONTINIOUS
   if(b_rx_ready){
     b_rx_ready = 0;
     radio.read(&dataIn, sizeof(dataIn));
-
-    currentCommand = dataIn.command;
-    currentValue = dataIn.dataValue;
-    currentDestAddr = dataIn.destAddr;
 #ifdef DEBUG
-      Serial.println("IRQ geweest");
-      printf("Current command: %d\n\r", currentCommand);
+    Serial.println("IRQ geweest");
+    printf("Current command: %d\n\r", dataIn.command);
 #endif
   }//end fetch command
-  
-  switch (currentCommand){
-    case 0:
-      //stop command, hold last value
+
+  switch (dataIn.command){
+    case 0: //stop command, hold last value
+      hsv.v = (uint8_t)dataIn.dataValue;
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+      hsv2rgb_rainbow(hsv, leds[i]);
+      FastLED.show();
       break;
 
-    case 1: //read sensor and use fo own actuator
-        hsv.hue = ultrasone();
-        for (uint8_t i = 0; i < NUM_LEDS; i++)
-        hsv2rgb_rainbow(hsv, leds[i]);
+    case 1: //read sensor and use for own actuator
+      l_distance = ultrasone();
+      
+      //limit the dsitance between the min and max distances
+      l_distance = constrain(l_distance, MIN_DIST_CM, MAX_DIST_CM);
+      //remap the mean distance to 0-255 for use with the hue functions
+      hsv.hue = map(l_distance, MIN_DIST_CM, MAX_DIST_CM, 0, 255);
+      
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+      hsv2rgb_rainbow(hsv, leds[i]);
 #ifdef DEBUG
-      Serial.print("Color in hue: ");
-      Serial.println(hsv.hue);
-#endif 
-        FastLED.show();
+  Serial.print("Color in hue: ");
+  Serial.println(hsv.hue);
+#endif
+      FastLED.show(); //display the LED output
 #ifdef DEBUG
-      Serial.println("transform to RGB and display LED");
+  Serial.println("transform to RGB and display LED");
 #endif 
-    break;
+      break;
 
     case 2: // read sensor and send to other actuator
       dataOut.command = 3;
-      f_distance = ultrasone();
-      dataOut.dataValue = (uint16_t) f_distance; //sensor input
+      l_distance = ultrasone();
+      dataOut.dataValue = (uint16_t) l_distance; //sensor input
       dataOut.destAddr = listeningPipes[localAddr];
         
       radio.stopListening();
       radio.openWritingPipe(dataIn.destAddr);//set destination address
       radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-      printf("%ld", dataIn.destAddr);
-      Serial.print("\n\rdata send: ");
-      Serial.println(dataOut.dataValue);
+  printf("%ld", dataIn.destAddr);
+  Serial.print("\n\rdata send: ");
+  Serial.println(dataOut.dataValue);
 #endif
       radio.startListening();
       break;
 
     case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
-      Serial.print("receiving address: ");
-      printf("%ld", dataIn.destAddr);
-      Serial.println();
-      Serial.print("received data: ");
-      Serial.println(dataIn.dataValue);
+  Serial.print("receiving address: ");
+  printf("%ld", dataIn.destAddr);
+  Serial.println();
+  Serial.print("received data: ");
+  Serial.println(dataIn.dataValue);
 #endif
-      //do something
+    //do something
       break;
     case 4:
 #ifdef DEBUG
-      Serial.print("reset node");
+  Serial.print("reset node");
+#endif
+    //reset node
+  default:
+    //do nothing
+    break;
+/* delay om uitvoering te vertragen tot 50Hz
+ * uitvoering wordt vertraagd met 20 ms 
+ * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
+ * Wanneer het programma werkt kan dit verfijnt worden
+ */
+  }// end switch
+  delay(5);
+/* Verloop uitvoering als er commando binnen komt.
+ * Verloopt op interruptbasis om processing te verlagen
+*/
+#else //Single operation
+  if(b_rx_ready){
+    b_rx_ready = 0; 
+    radio.read(&dataIn, sizeof(dataIn));
+#ifdef DEBUG
+  Serial.print("Incomming command: ");
+  Serial.println(dataIn.command);
+#endif
+
+  switch (dataIn.command){
+    case 0:
+      //to be written
+      for (uint8_t i = 0; i < NUM_LEDS; i++){
+        leds[i] = CRGB::Black;
+      }
+      FastLED.show();
+      break;
+
+    case 1: //read sensor and use for own actuator
+      l_distance = ultrasone();
+      
+      //limit the dsitance between the min and max distances
+      l_distance = constrain(l_distance, MIN_DIST_CM, MAX_DIST_CM);
+      //remap the mean distance to 0-255 for use with the hue functions
+      hsv.hue = map(l_distance, MIN_DIST_CM, MAX_DIST_CM, 0, 255);
+      
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+      hsv2rgb_rainbow(hsv, leds[i]);
+#ifdef DEBUG
+  Serial.print("Color in hue: ");
+  Serial.println(hsv.hue);
+#endif
+      FastLED.show(); //display the LED output
+#ifdef DEBUG
+  Serial.println("transform to RGB and display LED");
+#endif  
+      break;
+
+    case 2: // read sensor and send to other actuator
+      l_distance = ultrasone();
+      //cast to uint16_t
+      dataOut.command = 3;
+      dataOut.dataValue = (uint16_t) l_distance;
+      dataOut.destAddr = listeningPipes[localAddr];
+        
+      radio.stopListening();
+      radio.openWritingPipe(dataIn.destAddr);//set destination address
+      radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+  printf("%ld", dataIn.destAddr);
+  Serial.print("\n\rdata send: ");
+  Serial.println(dataOut.dataValue);
+#endif
+      radio.startListening();
+      break;
+
+    case 3: //receive sensor value and use for own actuator
+#ifdef DEBUG
+  Serial.print("receiving address: ");
+  printf("%ld", dataIn.destAddr);
+  Serial.println();
+  Serial.print("received data: ");
+  Serial.println(dataIn.dataValue);
+#endif
+      //cast to float
+      hsv.hue = (uint8_t) dataIn.dataValue;
+      break;
+    case 4:
+#ifdef DEBUG
+  Serial.print("reset node");
 #endif
       //reset node
     default:
       //do nothing
       break;
-    /* delay om uitvoering te vertragen
-     * uitvoering wordt vertraagd met X ms 
-     * precieze berekening is onbekend, maar 1/x is close enough
-     */
-    delay(20);
-  }// end switch
-#endif
+    }//end switch
+  }//end non-continious
+#endif //endif CONTINIOUS
 
-/* Verloop uitvoering als er commando binnen komt.
- * Verloopt op interruptbasis om processing te verlagen
+#else
+/* Uitvoering op poll basis
+ * commando wordt opgeslagen
+ * en uitgevoerd tot een ander commando verzonden wordt 
 */
-#ifndef CONTINIOUS
-/*  if(b_rx_ready){
-    b_rx_ready = 0; 
+  radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
+  if (b_rx_ready){
     radio.read(&dataIn, sizeof(dataIn));
 #ifdef DEBUG
-    Serial.print("Incomming command: ");
-    Serial.println(dataIn.command);
+  Serial.println("data ontvangen");
+  printf("Command: %d\n\r", dataIn.command);
 #endif
+  }
+  
+  switch (dataIn.command){
+    case 0:
+      //stop command, hold last value
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+        leds[i] = CRGB::Black;
+      FastLED.show();
+      break;
 
-    switch (dataIn.command){
-      case 0:
-        analogWrite(LEDR_pin, 0);
-        analogWrite(LEDG_pin, 0);
-        analogWrite(LEDB_pin, 0);
-        break;
+    case 1: //read sensor and use for own actuator
+      l_distance = ultrasone();
+      hsv.hue = map(l_distance, MIN_DIST, MAX_DIST, 0, 255);
+      for (uint8_t i = 0; i < NUM_LEDS; i++)
+      hsv2rgb_rainbow(hsv, leds[i]);
+#ifdef DEBUG
+  Serial.print("Color in hue: ");
+  Serial.println(hsv.hue);
+#endif 
+      FastLED.show();
+#ifdef DEBUG
+  Serial.println("transform to RGB and display LED");
+#endif 
+      break;
 
-      case 1: //read sensor and use fo own actuator
-        i_distance = ultrasone();
-        int distance = constrain((int)255*i_distance,0,255);
-        LEDHue(i_distance);
-        break;
-
-      case 2: // read sensor and send to other actuator
-        f_distance = ultrasone();
-        //cast to uint16_t
-        dataOut.command = 3;
-        dataOut.dataValue = i_distance;
-        dataOut.destAddr = listeningPipes[localAddr];
+    case 2: // read sensor and send to other actuator
+      dataOut.command = 3;
+      l_distance = ultrasone();
+      dataOut.dataValue = (uint16_t) l_distance; //sensor input
+      dataOut.destAddr = listeningPipes[localAddr];
         
-        radio.stopListening();
-        radio.openWritingPipe(dataIn.destAddr);//set destination address
-        radio.write(&dataOut, sizeof(dataOut));
+      radio.stopListening();
+      radio.openWritingPipe(dataIn.destAddr);//set destination address
+      radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-        printf("%ld", dataIn.destAddr);
-        Serial.print("\n\rdata send: ");
-        Serial.println(dataOut.dataValue);
+  printf("%ld", dataIn.destAddr);
+  Serial.print("\n\rdata send: ");
+  Serial.println(dataOut.dataValue);
 #endif
-        //radio.openReadingPipe(0,listeningPipes[localAddr]);
-        radio.startListening();
-        break;
+      radio.startListening();
+      break;
 
-      case 3: //receive sensor value and use for own actuator
+    case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
-        Serial.print("receiving address: ");
-        printf("%ld", dataIn.destAddr);
-        Serial.println();
-        Serial.print("received data: ");
-        Serial.println(dataIn.dataValue);
+  Serial.print("receiving address: ");
+  printf("%ld", dataIn.destAddr);
+  Serial.println();
+  Serial.print("received data: ");
+  Serial.println(dataIn.dataValue);
 #endif
-        //cast to float
-        LEDHue(dataIn.dataValue);
-        break;
-      case 4:
+      //do something
+      break;
+    case 4:
 #ifdef DEBUG
-        Serial.print("reset node");
+  Serial.print("reset node");
 #endif
-        //reset node
-      default:
-        //do nothing
-        break;
-    }//end switch
-  }//end non-interrupt*/
-#endif  
+      //reset node
+    default:
+      //do nothing
+      break;
+  }// end switch
+/* delay om uitvoering te vertragen tot 50Hz
+ * uitvoering wordt vertraagd met 20 ms 
+ * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
+ * Wanneer het programma werkt kan dit verfijnt worden
+*/
+  delay(10);
+#endif //endif INTERRUPT
 } //end loop
 
-uint8_t ultrasone(void)
+long ultrasone(void)
 {
   uint32_t t1, t2, pulse_width;
-  long l_distance_cm;
-  uint8_t i_distance_cm;
+  long l_distance_cm = 0;
+  uint8_t i_distance_cm = 0;
   
   //trigger pulse >10us
   digitalWrite(TRIG, HIGH);
@@ -296,28 +424,37 @@ uint8_t ultrasone(void)
   digitalWrite(TRIG, LOW);
   
   //wait for echo pulse
-  while(digitalRead(ECHO) == 0);
-  
-  //measure echo pulse length
-  t1 = micros();
-  while(digitalRead(ECHO) == 1);
-  t2 = micros();
-  pulse_width = t2 - t1;
-  
-  //calculate distance in cm. constants are found in datasheet
+  pulse_width = pulseIn(ECHO, HIGH);
+
+  if (pulse_width > MAX_DIST){
+    if(hsv.v != 0){
+      hsv.v--;
+    }
+    else
+    {
+      hsv.v = 0;
+    }
+  }
+  else{
+    hsv.v = BRIGHTNESS;
+  }
+    
+  // Calculate distance in centimeters and inches. The constants
+  // are found in the datasheet, and calculated from the assumed speed 
+  // of sound in air at sea level (~340 m/s).
   l_distance_cm = pulse_width / 58;
 
 #ifdef DEBUG
       Serial.print("measured distance: ");
       Serial.println(l_distance_cm);
 #endif
-
-  i_distance_cm = map(l_distance_cm, MIN_DIST, MAX_DIST, 0, 255);
-  return i_distance_cm;
+  return l_distance_cm;
 }
 
+#ifdef INTERRUPT
 void nRF_IRQ() {
   noInterrupts();
   radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
   interrupts();
 }
+#endif
