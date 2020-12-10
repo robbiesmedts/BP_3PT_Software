@@ -1482,7 +1482,7 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400de6:	4601      	mov	r1, r0
   400de8:	2800      	cmp	r0, #0
   400dea:	d087      	beq.n	400cfc <gmac_process_eth_packet+0x1c>
-				printf("E: ICMP Send - 0x%xl\n\r", ul_rc);
+				printf("E: ICMP Send - 0x%x\n\r", ul_rc);
   400dec:	4813      	ldr	r0, [pc, #76]	; (400e3c <gmac_process_eth_packet+0x15c>)
   400dee:	4b0c      	ldr	r3, [pc, #48]	; (400e20 <gmac_process_eth_packet+0x140>)
   400df0:	4798      	blx	r3
@@ -9808,8 +9808,8 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   405c58:	20504d43 	.word	0x20504d43
   405c5c:	646e6553 	.word	0x646e6553
   405c60:	30202d20 	.word	0x30202d20
-  405c64:	6c782578 	.word	0x6c782578
-  405c68:	00000d0a 	.word	0x00000d0a
+  405c64:	0a782578 	.word	0x0a782578
+  405c68:	0000000d 	.word	0x0000000d
   405c6c:	203d3d3d 	.word	0x203d3d3d
   405c70:	61666544 	.word	0x61666544
   405c74:	20746c75 	.word	0x20746c75
@@ -9971,9 +9971,9 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   405ef8:	3a3a3ae1 4d202d2d 65747361 646f4e72     .:::-- MasterNod
   405f08:	65525f65 312d3076 0d2d2d20 202d2d0a     e_Rev0-1 --..-- 
   405f18:	454d4153 582d3037 20444c50 0a0d2d2d     SAME70-XPLD --..
-  405f28:	43202d2d 69706d6f 3a64656c 74634f20     -- Compiled: Oct
-  405f38:	20343220 30323032 3a333120 303a3231      24 2020 13:12:0
-  405f48:	2d2d2034 0000000d 4d202d2d 25204341     4 --....-- MAC %
+  405f28:	43202d2d 69706d6f 3a64656c 63654420     -- Compiled: Dec
+  405f38:	20392020 30323032 3a373120 333a3130       9 2020 17:01:3
+  405f48:	2d2d2031 0000000d 4d202d2d 25204341     1 --....-- MAC %
   405f58:	78253a78 3a78253a 253a7825 78253a78     x:%x:%x:%x:%x:%x
   405f68:	00000d0a 49202d2d 25202050 64252e64     ....-- IP  %d.%d
   405f78:	2e64252e 0d0a6425 00000000 6b6e696c     .%d.%d......link

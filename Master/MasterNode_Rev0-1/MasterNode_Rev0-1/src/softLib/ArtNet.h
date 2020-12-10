@@ -1,3 +1,14 @@
+/*
+ * Artnet.h
+ *
+ * Created: 10/12/2020 17:03:04
+ *  Author: Design
+ */ 
+
+
+#ifndef ARTNET_H_
+#define ARTNET_H_
+
 // OpCodes
 #define OpPoll 			0x2000
 #define OpPollReply 	0x2100
@@ -33,3 +44,5 @@ typedef struct artPoll_packet {
 	uint8_t art_Priority;		//Priority of the message
 	} artPoll_t, *p_artPoll_t;
 	
+	
+#endif /* ARTNET_H_ */
