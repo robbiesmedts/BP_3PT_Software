@@ -26,7 +26,7 @@
  * S1       ||    D5
  * S2       ||    D6
  * S3       ||    D7
- * OUT      ||    D8
+ * OUT      ||    D3
  * OE       ||    A1
  * LED      ||    A0
  * GND/G    ||    GND
@@ -96,38 +96,35 @@ uint8_t RGB[3] = {0, 0, 0};
 */
 struct dataStruct {
   uint32_t destAddr;
-  uint16_t dataValue;
-  uint8_t command;
+  uint16_t dataValue = 0;
+  uint8_t command = 0;
 } dataIn, dataOut;
 
 /* List with determent colours
- * Calibrated with LEE colour gels
+ * Calibrated with RGB LEDs
  */
 typedef enum {
-  BLACK = 1,
+  BLACK = 0,
   RED = 10,      //L106 (Primary Red)
-  ORANGE = 20,   //L105 (Orange)
-  YELLOW = 30,   //L101 (Yellow)
-  GREEN = 40,    //L139 (Primary Green)
-  CYAN = 50,     //L118 (Light Blue)
-  BLUE = 60,     //L132 (Medium Blue)
-  INDIGO = 70,   //L071 (Tokyo Blue)
-  PURPLE = 80,   //L049 (Medium Purple)
-  MAGENTA = 90   //L113 (Magenta)
+  YELLOW = 20,   //L101 (Yellow)
+  GREEN = 30,    //L139 (Primary Green)
+  CYAN = 40,     //L118 (Light Blue)
+  BLUE = 50,     //L132 (Medium Blue)
+  MAGENTA = 60   //L113 (Magenta)
 }TSCcolor_e;
 
 /* Pin definitions */
-const int interrupt_pin = 2; //nRF24L01 interrupt
+#define interrupt_pin 2 //nRF24L01 interrupt
 
-const int C_OUT = 3; //TCS230 color value interrupt
-const int S0 = 4; //output scaling 1
-const int S1 = 5; //output scaling 2
-const int S2 = 6; //photodiode selection 1
-const int S3 = 7; //photodiode selection 2
-const int LED = A0;
-const int OE = A1;
+#define C_OUT 3 //TCS230 color value interrupt
+#define S0 4 //output scaling 1
+#define S1 5 //output scaling 2
+#define S2 6 //photodiode selection 1
+#define S3 7 //photodiode selection 2
+#define LED A0
+#define OE A1
 
-const int RELAIS = A5;
+#define RELAIS A5
 
 void setup() {
 #ifdef DEBUG
@@ -135,9 +132,7 @@ void setup() {
   printf_begin();
 #endif
 
-  /*
-   * Initialisation of the color sensor
-   */
+  //Initialisation of the color sensor
   TCS_Init();
 
   pinMode(RELAIS, OUTPUT);
@@ -146,13 +141,11 @@ void setup() {
   pinMode(interrupt_pin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interrupt_pin), nRF_IRQ, LOW); //INT0
   
-  /*
-     Initailisation of the nRF24L01 chip
-  */
+  //Initailisation of the nRF24L01 chip
   radio.begin();
   radio.setAddressWidth(4);
   for (uint8_t i = 0; i < 4; i++)
-    radio.openReadingPipe(0, listeningPipes[localAddr] + i);
+    radio.openReadingPipe(i, listeningPipes[localAddr] + i);
     
   radio.setPALevel(RF24_PA_MIN);
   radio.startListening();
@@ -164,30 +157,23 @@ void setup() {
 }
 
 void loop() {
-  uint8_t currentCommand;
-  uint16_t currentValue;
-  uint32_t currentDestAddr;
-  uint8_t color;
+  TSCcolor_e color;
   
   /* Uitvoering op interrupt basis
    * commando wordt opgeslagen
    * en uitgevoerd tot een ander commando verzonden wordt 
   */
 #ifdef CONTINIOUS
-/*  if(b_rx_ready){
+  if(b_rx_ready){
     b_rx_ready = 0;
     radio.read(&dataIn, sizeof(dataIn));
-
-    currentCommand = dataIn.command;
-    currentValue = dataIn.dataValue;
-    currentDestAddr = dataIn.destAddr;
 #ifdef DEBUG
       Serial.println("IRQ geweest");
       printf("Current command: %d\n\r", currentCommand);
 #endif
   }//end fetch command
   
-  switch (currentCommand){
+  switch (dataIn.command){
     case 0:
       //stop command, hold last value
       //analogWrite(act_pin, 0);
@@ -232,20 +218,17 @@ void loop() {
     default:
       //do nothing
       break;
-    // delay om uitvoering te vertragen
-    // uitvoering wordt vertraagd met X ms 
-    // precieze berekening is onbekend, maar 1/x is close enough
-    //
-    delay(4);
-  }// end switch
-*/
-#endif
 
-/* 
- *  Verloop uitvoering als er commando binnen komt.
- *  Verloopt op interruptbasis om processing te verlagen
+  }// end switch
+   /* delay om uitvoering te vertragen
+    * uitvoering wordt vertraagd met X ms 
+    * precieze berekening is onbekend, maar 1/x is close enough
+    */
+    delay(4);
+#else
+/* Verloop uitvoering als er commando binnen komt.
+ * Verloopt op interruptbasis om processing te verlagen
 */
-#ifndef CONTINIOUS
   if(b_rx_ready){
     b_rx_ready = 0; 
     radio.read(&dataIn, sizeof(dataIn));
@@ -263,7 +246,7 @@ void loop() {
       case 1: //read sensor and use fo own actuator
         TCS_read(RGB);
         color = TSC_Color(RGB);
-        if (color == dataIn.dataValue){
+        if (color == (uint8_t) dataIn.dataValue){
           digitalWrite(RELAIS, HIGH);
         }
         else{
