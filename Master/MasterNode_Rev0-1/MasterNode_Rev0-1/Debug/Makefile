@@ -96,7 +96,8 @@ SUBDIRS :=  \
 ../src/ASF/thirdparty/CMSIS/Lib/ \
 ../src/ASF/thirdparty/CMSIS/Lib/GCC/ \
 ../src/config/ \
-../src/softLib
+../src/softLib \
+../src/softLib/Art-Net
 
 
 # Add inputs and outputs from these tool invocations to the build variables 

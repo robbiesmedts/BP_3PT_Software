@@ -151,15 +151,9 @@ typedef struct eth_packet {
 
 /** Art-Net packet structure */
 COMPILER_PACK_SET(1)
-typedef struct artnet_packet {
+typedef struct art_packet {
 	uint8_t art_id[8];			//Art-Net identifier
 	uint16_t art_OpCode;		//Art-Net packet type
-	uint16_t art_protver;		//Art-Net protocol version
-	uint8_t art_seq;			//sequence
-	uint8_t art_phy;			//physical port used
-	uint16_t art_uninet;		//destination universe
-	uint16_t art_datlen;		//length of data array
-	uint8_t art_data[512];		//data array
 	} art_packet_t, *p_art_packet_t;
 
 COMPILER_PACK_RESET()

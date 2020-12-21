@@ -664,6 +664,7 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
     <Folder Include="src\softLib" />
+    <Folder Include="src\softLib\Art-Net" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ASF\common\services\spi\sam_spi\spi_master.c">
@@ -679,6 +680,15 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam\drivers\usart\usart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\softLib\Art-Net\Art-Net.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\softLib\Art-Net\Art-NetOemCodes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\softLib\Art-Net\Rdm.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\softLib\GMAC_Artnet.c">

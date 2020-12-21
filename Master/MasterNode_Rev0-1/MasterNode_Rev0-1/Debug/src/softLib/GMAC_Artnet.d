@@ -178,7 +178,9 @@ src/softLib/GMAC_Artnet.d src/softLib/GMAC_Artnet.o: \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
- ../src/softLib/mini_ip.h ../src/config/conf_eth.h
+ ../src/softLib/mini_ip.h ../src/config/conf_eth.h \
+ ../src/softLib/Art-Net/Art-Net.h ../src/softLib/Art-Net/RDM.h \
+ ../src/softLib/Art-Net/Art-NetOemCodes.h
 
 ../src/softLib/GMAC_Artnet.h:
 
@@ -559,3 +561,9 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/softLib/mini_ip.h:
 
 ../src/config/conf_eth.h:
+
+../src/softLib/Art-Net/Art-Net.h:
+
+../src/softLib/Art-Net/RDM.h:
+
+../src/softLib/Art-Net/Art-NetOemCodes.h:

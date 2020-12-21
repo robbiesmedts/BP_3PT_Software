@@ -6,16 +6,31 @@
  */ 
 
 #include "GMAC_Artnet.h"
+#include "softLib/Art-Net/Art-Net.h"
 
 uint32_t read_dev_gmac(void)
 {
 	return gmac_dev_read(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer_rx, sizeof(gs_uc_eth_buffer_rx), &ul_frm_size_rx);
 }
 
-uint32_t write_dev_gmac(void)
+/**
+ * \brief Send ulLength bytes from pcFrom. This copies the buffer to one of the
+ * GMAC Tx buffers, and then indicates to the GMAC that the buffer is ready.
+ * If lEndOfFrame is true then the data being copied is the end of the frame
+ * and the frame can be transmitted.
+ *
+ * \param p_gmac_dev Pointer to the GMAC device instance.
+ * \param p_buffer       Pointer to the data buffer.
+ * \param ul_size    Length of the frame.
+ * \param func_tx_cb  Transmit callback function.
+ *
+ * \return Length sent.
+ */
+uint32_t write_dev_gmac(void *p_buffer, uint32_t ul_size)
 {
-	return gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, (uint8_t *) gs_uc_eth_buffer_tx, sizeof(gs_uc_eth_buffer_tx), NULL);
+	return gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, p_buffer, ul_size, NULL);
 }
+
 /** The MAC address used for the test */
 uint8_t gs_uc_mac_address[] =
 { ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
@@ -41,6 +56,8 @@ uint8_t artnet_data_buffer[512];
 uint32_t ul_frm_size_rx, ul_frm_size_tx;
 volatile uint32_t ul_delay;
 gmac_options_t gmac_option;
+T_Addr p_artAddr;
+T_ArtPollReply p_artPollReply_packet;
 
 bool init_gmac_ethernet(void)
 {
@@ -89,39 +106,13 @@ bool init_gmac_ethernet(void)
 		puts("Set link ERROR!\r");
 		return 0;
 	}
+	
+	for(uint8_t i = 0; i<4; i++)
+		p_artAddr.IP[i] = gs_uc_ip_address[i];
+	
+	p_artAddr.Port = 0x6391;
+	
 	return 1;
-}
-/**
- * \brief Process & return the ICMP checksum.
- *
- * \param p_buff Pointer to the buffer.
- * \param ul_len The length of the buffered data.
- *
- * \return Checksum of the ICMP.
- */
-static uint16_t gmac_icmp_checksum(uint16_t *p_buff, uint32_t ul_len)
-{
-	uint32_t i, ul_tmp;
-
-	for (i = 0, ul_tmp = 0; i < ul_len; i++, p_buff++) {
-
-		ul_tmp += SWAP16(*p_buff);
-	}
-	ul_tmp = (ul_tmp & 0xffff) + (ul_tmp >> 16);
-
-	return (uint16_t) (~ul_tmp);
-}
-
-static void saveDMX(uint8_t *p_uc_data, uint32_t ul_size)
-{
-	p_art_packet_t p_art_packet = (p_art_packet_t) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
-	
-	if(p_art_packet->art_OpCode == 0x5000)
-	{
-		memcpy(artnet_data_buffer, p_art_packet->art_data, sizeof(artnet_data_buffer));
-		puts("DMX saved");
-	}
-	
 }
 
 /**
@@ -182,71 +173,93 @@ void gmac_display_ip_packet(p_ip_header_t p_ip_header, uint32_t ul_size)
 	puts("\n\r----------------------------------------\r");
 }
 
-void display_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size)
+static void display_ArtDmx_packet(p_T_ArtDmx p_ArtDmx_packet)
 {
-	p_art_packet_t p_art_packet = (p_art_packet_t) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
-	
 	printf("\n\r");
-	printf("identifier: %c%c%c%c%c%c%c%c\n\r", (char)p_art_packet->art_id[0], (char)p_art_packet->art_id[1], (char)p_art_packet->art_id[2], (char)p_art_packet->art_id[3], (char)p_art_packet->art_id[4], (char)p_art_packet->art_id[5], (char)p_art_packet->art_id[6], (char)p_art_packet->art_id[7]);
-	printf("Opcode: %d\n\r", p_art_packet->art_OpCode);
-	printf("universe %d\n\n\r", p_art_packet->art_uninet);
-	
-	if(p_art_packet->art_OpCode == 0x5000)
-	{
+	printf("identifier: %c%c%c%c%c%c%c%c\n\r", (char)p_ArtDmx_packet->ID[0], (char)p_ArtDmx_packet->ID[1], (char)p_ArtDmx_packet->ID[2], (char)p_ArtDmx_packet->ID[3], (char)p_ArtDmx_packet->ID[4], (char)p_ArtDmx_packet->ID[5], (char)p_ArtDmx_packet->ID[6], (char)p_ArtDmx_packet->ID[7]);
+	printf("Opcode: %X\n\r", p_ArtDmx_packet->OpCode);
+
 		for (long i = 0; i<512; i++)
 		{
-			printf("Channel %ld: %ld\n\r", i+1, p_art_packet->art_data[i]);
+			printf("Channel %ld: %d\n\r", i+1, p_ArtDmx_packet->Data[i]);
 		}
-	}
 }
 
-/**
- * \brief Process the received ARP packet; change address and send it back.
- *
- * \param p_uc_data  The data to process.
- * \param ul_size The data size.
- */
-static void gmac_process_arp_packet(uint8_t *p_uc_data, uint32_t ul_size)
+static void gmac_process_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size)
 {
-	uint32_t i;
-	uint8_t ul_rc = GMAC_OK;
-
-	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
-	p_arp_header_t p_arp = (p_arp_header_t) (p_uc_data + ETH_HEADER_SIZE);
-
-	if (SWAP16(p_arp->ar_op) == ARP_REQUEST) {
-		printf("-- MAC %x:%x:%x:%x:%x:%x\n\r",
-				p_eth->et_dest[0], p_eth->et_dest[1],
-				p_eth->et_dest[2], p_eth->et_dest[3],
-				p_eth->et_dest[4], p_eth->et_dest[5]);
-
-		printf("-- MAC %x:%x:%x:%x:%x:%x\n\r",
-				p_eth->et_src[0], p_eth->et_src[1],
-				p_eth->et_src[2], p_eth->et_src[3],
-				p_eth->et_src[4], p_eth->et_src[5]);
-
-		/* ARP reply operation */
-		p_arp->ar_op = SWAP16(ARP_REPLY);
-
-		/* Fill the destination address and source address */
-		for (i = 0; i < 6; i++) {
-			/* Swap ethernet destination address and ethernet source address */
-			p_eth->et_dest[i] = p_eth->et_src[i];
-			p_eth->et_src[i] = gs_uc_mac_address[i];
-			p_arp->ar_tha[i] = p_arp->ar_sha[i];
-			p_arp->ar_sha[i] = gs_uc_mac_address[i];
+	int32_t ul_rc = GMAC_OK;
+	p_art_packet_t p_art_packet = (p_art_packet_t) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	p_T_ArtPoll p_artPoll_packet = (p_T_ArtPoll) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	p_T_ArtDmx p_artDmx_packet = (p_T_ArtDmx) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	
+	//printf("OpCode = %X\n\r", p_art_packet->art_OpCode);
+	
+	switch (p_art_packet->art_OpCode)
+	{
+	case OpPoll:
+		for (uint8_t i = 0; i<8; i++)
+		{
+			p_artPollReply_packet.ID[i] = p_artPoll_packet->ID[i];
 		}
-		/* Swap the source IP address and the destination IP address */
-		for (i = 0; i < 4; i++) {
-			p_arp->ar_tpa[i] = p_arp->ar_spa[i];
-			p_arp->ar_spa[i] = gs_uc_ip_address[i];
+		p_artPollReply_packet.OpCode = OpPollReply;
+		p_artPollReply_packet.BoxAddr = p_artAddr;
+		p_artPollReply_packet.VersionInfoLo = 0x01; //Version 1 of the firmware
+		//p_artPollReply_packet.NetSwitch = ;
+		//p_artPollReply_packet.SubSwitch = ;
+		//p_artPollReply_packet.OemHi = 0x00; //OEM Unknown 0x00FF
+		p_artPollReply_packet.OemLo = 0xFF;
+		//p_artPollReply_packet.UbeaVerion = 0x00; //Not programmed
+		p_artPollReply_packet.Status = 0b00000010;
+		p_artPollReply_packet.EstaManLo = "S";
+		p_artPollReply_packet.EstaManHi = "R";
+		strcpy (p_artPollReply_packet.ShortName, "MstrTX");
+		strcpy (p_artPollReply_packet.LongName, "Masternode for interactive theater system");
+		//p_artPollReply_packet.NodeReport = ;
+		//p_artPollReply_packet.NumPortsHi = 0;
+		p_artPollReply_packet.NumPortsLo = 0;
+		//p_artPollReply_packet.PortTypes[4] = {0, 0, 0, 0};
+		//p_artPollReply_packet.GoodInput[4] = {0, 0, 0, 0};
+		p_artPollReply_packet.GoodOutputA[0] = 0x80;
+		//p_artPollReply_packet.SwIn[4] = {};
+		//p_artPollReply_packet.SwOut[4] = {};
+		//p_artPollReply_packet.AcnPriority = ;
+		//p_artPollReply_packet.SwMacro = 0;
+		//p_artPollReply_packet.SwRemote = 0;
+		//p_artPollReply_packet.Spare1 = 0;
+		//p_artPollReply_packet.Spare2 = 0;
+		//p_artPollReply_packet.Spare3 = 0;
+		//p_artPollReply_packet.Style = 0; //StNode - A DMX to/from Art-Net device
+		
+		for (uint8_t i = 0; i < 6; i++)
+		{
+			p_artPollReply_packet.Mac[i] = gs_uc_mac_address[i];	
 		}
-
-		ul_rc = gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, p_uc_data, ul_size, NULL);
-
-		if (ul_rc != GMAC_OK) {
-			printf("E: ARP Send - 0x%x\n\r", ul_rc);
+		//p_artPollReply_packet.BindIp[4] = {};
+		//p_artPollReply_packet.BindIndex = 0;
+		//p_artPollReply_packet.Status2 = 0;
+		p_artPollReply_packet.GoodOutputB[0] = 0b11000000;
+		p_artPollReply_packet.Status3 = 0b010000000;
+		//p_artPollReply_packet.DefaultUiResponder = ;
+		//p_artPollReply_packet.Filler[15] = {};	
+		
+		//send ArtPollReply
+		
+		puts("ArtPoll replied\r");
+		break;
+	case OpDmx:
+		//printf("Universe: %d%d\n\r", p_artDmx_packet->Net, p_artDmx_packet->SubUni);
+		if (p_artDmx_packet->SubUni == 0 && p_artDmx_packet->Net == 0)
+		{
+			//Length is send LSB first an received byte swapped, for the correct length we have to re-swap it
+			memcpy(artnet_data_buffer, p_artDmx_packet->Data, SWAP16(p_artDmx_packet->Length)); //mempcy(dst, src, arraylength);
+			//puts("DMX saved\r");
+			//display_ArtDmx_packet(p_artDmx_packet);
 		}
+		
+		break;
+	default:
+		puts("Unimplemented OpCode");
+		break;
 	}
 }
 
@@ -261,88 +274,26 @@ static void gmac_process_ip_packet(uint8_t *p_uc_data, uint32_t ul_size)
 	uint32_t i;
 	uint8_t controle[8];
 	uint32_t hdr_len = ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE;
-	uint32_t ul_icmp_len;
-	int32_t ul_rc = GMAC_OK;
-
-	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
+	
 	p_ip_header_t p_ip_header = (p_ip_header_t) (p_uc_data + ETH_HEADER_SIZE);
-
-	p_icmp_echo_header_t p_icmp_echo =
-			(p_icmp_echo_header_t) ((int8_t *) p_ip_header +
-			ETH_IP_HEADER_SIZE);
-	
-	/*Check on Art-Net header*/
-	if (ul_size > hdr_len)
+	if (p_ip_header ->ip_p == IP_PROT_UDP)
 	{
-		/*Check if the 8 following bytes of the headers are part of the Art-Net header*/
-	
-		for (i = 0; i < 8; i++)
+		//puts("UDP packet\r\n");
+		/*Check on added Art-Net header*/
+		if (ul_size > hdr_len)
 		{
-			controle[i] = p_uc_data[hdr_len+i];
-		}
-/*		//print controle for debugging
-		printf("\n\r");
-		for (i = 0; i < 8; i++)
-		{
-			printf("%d ",controle[i]);
-		}
-		printf("\n\n\r");
-*/
-		/*Check if Art-Net*/
-		if (!compareArray(controle, artnet_id, 8))
-		{	
-			puts("Art-Net detected");
-			//display_artnet_packet(p_uc_data, ul_size);
-			saveDMX(p_uc_data, ul_size);
-		}
-		
-	}
-		
-	//printf("-- IP  %d.%d.%d.%d\n\r", p_ip_header->ip_dst[0], p_ip_header->ip_dst[1], p_ip_header->ip_dst[2], p_ip_header->ip_dst[3]);
-
-	//printf("-- IP  %d.%d.%d.%d\n\r", p_ip_header->ip_src[0], p_ip_header->ip_src[1], p_ip_header->ip_src[2], p_ip_header->ip_src[3]);
-	switch (p_ip_header->ip_p) {
-	case IP_PROT_ICMP:
-		if (p_icmp_echo->type == ICMP_ECHO_REQUEST) {
-			p_icmp_echo->type = ICMP_ECHO_REPLY;
-			p_icmp_echo->code = 0;
-			p_icmp_echo->cksum = 0;
-
-			/* Checksum of the ICMP message */
-			ul_icmp_len = (SWAP16(p_ip_header->ip_len) - ETH_IP_HEADER_SIZE);
-			if (ul_icmp_len % 2) {
-				*((uint8_t *) p_icmp_echo + ul_icmp_len) = 0;
-				ul_icmp_len++;
+			/*Check if the 8 following bytes of the headers are part of the Art-Net header*/
+			for (i = 0; i < 8; i++)
+			{
+				controle[i] = p_uc_data[hdr_len+i];
 			}
-			ul_icmp_len = ul_icmp_len / sizeof(uint16_t);
-
-			p_icmp_echo->cksum = SWAP16(
-					gmac_icmp_checksum((uint16_t *)p_icmp_echo, ul_icmp_len));
-			/* Swap the IP destination  address and the IP source address */
-			for (i = 0; i < 4; i++) {
-				p_ip_header->ip_dst[i] =
-						p_ip_header->ip_src[i];
-				p_ip_header->ip_src[i] = gs_uc_ip_address[i];
-			}
-			/* Swap ethernet destination address and ethernet source address */
-			for (i = 0; i < 6; i++) {
-				/* Swap ethernet destination address and ethernet source address */
-				p_eth->et_dest[i] = p_eth->et_src[i];
-				p_eth->et_src[i] = gs_uc_mac_address[i];
-			}
-			/* Send the echo_reply */
-
-			ul_rc = gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, p_uc_data,
-					SWAP16(p_ip_header->ip_len) + 14, NULL);
-
-			if (ul_rc != GMAC_OK) {
-				printf("E: ICMP Send - 0x%x\n\r", ul_rc);
+			/*Check if data read compares to "Art-Net"*/
+			if (!compareArray(controle, artnet_id, 8))
+			{	
+				//printf("Art-Net compatible\r");
+				gmac_process_artnet_packet(p_uc_data, ul_size);
 			}
 		}
-		break;
-
-	default:
-		break;
 	}
 }
 
@@ -368,36 +319,13 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 
 		/* Process the IP packet */
 		gmac_process_ip_packet(p_uc_data, ul_size);
+		// Dump the IP header
+		//gmac_display_ip_packet(&ip_header, ul_size);
 	}
 	else
 	{
 		printf("=== Default w_pkt_format= 0x%X===\n\r", us_pkt_format);
 	}
-/*	switch (us_pkt_format) {
-	// ARP Packet format
-	case ETH_PROT_ARP:
-		// Process the ARP packet
-		gmac_process_arp_packet(p_uc_data, ul_size);
-
-		break;
-
-	// IP protocol frame
-	case ETH_PROT_IP:
-		// Backup the header
-		memcpy(&ip_header, p_ip_header, sizeof(ip_header_t));
-
-		// Process the IP packet
-		gmac_process_ip_packet(p_uc_data, ul_size);
-
-		// Dump the IP header
-		//gmac_display_ip_packet(&ip_header, ul_size);
-		break;
-
-	default:
-		printf("=== Default w_pkt_format= 0x%X===\n\r", us_pkt_format);
-		break;
-	}
-	*/
 }
 
 /*
