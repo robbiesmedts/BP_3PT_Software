@@ -68,13 +68,11 @@ void setup() {
   Serial.begin(115200);
   printf_begin();
 #endif
-  /*
-     Initailisation of the nRF24L01 chip
-  */
+  //Initailisation of the nRF24L01 chip
   radio.begin();
   radio.setAddressWidth(4);
   for (uint8_t i = 0; i < 4; i++)
-  radio.openReadingPipe(0, listeningPipes[localAddr] + i);
+  radio.openReadingPipe(i, listeningPipes[localAddr] + i);
   
   radio.setPALevel(RF24_PA_MIN);
   radio.startListening();
@@ -181,7 +179,7 @@ void loop() {
         break;
 
       case 1: //read sensor and use fo own actuator
-        analogWrite(act_pin, analogRead(sens_pin));
+        //analogWrite(act_pin, analogRead(sens_pin));
         break;
 
       case 2: // read sensor and send to other actuator
@@ -191,29 +189,32 @@ void loop() {
         
         radio.stopListening();
         radio.openWritingPipe(dataIn.destAddr);//set destination address
-        radio.write(&dataOut, sizeof(dataOut));
+        if(!radio.write(&dataOut, sizeof(dataOut)))
+        {
+          Serial.println("radio.write error");
+        }
+        //delayMicroseconds(50);
+        radio.startListening();
 #ifdef DEBUG
-        printf("%ld", dataIn.destAddr);
+        Serial.print(dataIn.destAddr, HEX);
         Serial.print("\n\rdata send: ");
         Serial.println(dataOut.dataValue);
 #endif
-        //radio.openReadingPipe(0,listeningPipes[localAddr]);
-        radio.startListening();
         break;
 
       case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
         Serial.print("receiving address: ");
-        printf("%ld", dataIn.destAddr);
+        Serial.print(dataIn.destAddr, HEX);
         Serial.println();
         Serial.print("received data: ");
         Serial.println(dataIn.dataValue);
 #endif
-        analogWrite(act_pin, dataIn.dataValue);
+        //analogWrite(act_pin, dataIn.dataValue);
         break;
       case 4:
 #ifdef DEBUG
-        Serial.print("reset node");
+        Serial.println("reset node");
 #endif
         //reset node
       default:
