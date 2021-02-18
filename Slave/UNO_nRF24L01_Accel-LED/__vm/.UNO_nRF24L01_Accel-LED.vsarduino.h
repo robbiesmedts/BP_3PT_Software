@@ -5,27 +5,20 @@
 			all non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
 			note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
-	Hardware: Seeeduino XIAO, Platform=samd, Package=Seeeduino
+	Hardware: Arduino Uno, Platform=avr, Package=arduino
 */
 
+#define __AVR_ATmega328p__
+#define __AVR_ATmega328P__
+#define _VMDEBUG 1
 #define ARDUINO 108013
 #define ARDUINO_MAIN
-#define F_CPU 48000000L
-#define printf iprintf
-#define __SAMD__
-#define F_CPU 48000000L
+#define F_CPU 16000000L
+#define __AVR__
+#define F_CPU 16000000L
 #define ARDUINO 108013
-#define ARDUINO_SEEED_XIAO_M0
-#define ARDUINO_ARCH_SAMD
-#define ARDUINO_SAMD_ZERO
-#define __SAMD21__
-#define __SAMD21G18A__
-#define ARM_MATH_CM0PLUS
-#define USB_VID 0x2886
-#define USB_PID 0x802F
-#define USBCON
-#define USB_CONFIG_POWER 100
+#define ARDUINO_AVR_UNO
+#define ARDUINO_ARCH_AVR
 #include "pins_arduino.h" 
-#include "variant.h" 
 #include "arduino.h"
 #include "UNO_nRF24L01_Accel-LED.ino"

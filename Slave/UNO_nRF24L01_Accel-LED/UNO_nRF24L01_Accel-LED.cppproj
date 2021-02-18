@@ -5,7 +5,7 @@
     <ProjectVersion>7.0</ProjectVersion>
     <ToolchainName>com.Atmel.ARMGCC.CPP</ToolchainName>
     <ProjectGuid>{f1a3de0b-db58-4301-bc5a-98ba79c95f05}</ProjectGuid>
-    <avrdevice>ATSAMD21E18A</avrdevice>
+    <avrdevice>ATSAM3X8E</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
     <Language>CPP</Language>
@@ -51,62 +51,34 @@
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=108013</Value>
       <Value>ARDUINO_MAIN</Value>
-      <Value>F_CPU=48000000L</Value>
-      <Value>printf=iprintf</Value>
-      <Value>__SAMD__</Value>
-      <Value>ARDUINO_SEEED_XIAO_M0</Value>
-      <Value>ARDUINO_ARCH_SAMD</Value>
-      <Value>ARDUINO_SAMD_ZERO</Value>
-      <Value>__SAMD21__</Value>
-      <Value>__SAMD21G18A__</Value>
-      <Value>ARM_MATH_CM0PLUS</Value>
-      <Value>USB_VID=0x2886</Value>
-      <Value>USB_PID=0x802F</Value>
-      <Value>USBCON</Value>
-      <Value>USB_CONFIG_POWER=100</Value>
+      <Value>F_CPU=16000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_AVR_UNO</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
@@ -115,62 +87,34 @@
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=108013</Value>
       <Value>ARDUINO_MAIN</Value>
-      <Value>F_CPU=48000000L</Value>
-      <Value>printf=iprintf</Value>
-      <Value>__SAMD__</Value>
-      <Value>ARDUINO_SEEED_XIAO_M0</Value>
-      <Value>ARDUINO_ARCH_SAMD</Value>
-      <Value>ARDUINO_SAMD_ZERO</Value>
-      <Value>__SAMD21__</Value>
-      <Value>__SAMD21G18A__</Value>
-      <Value>ARM_MATH_CM0PLUS</Value>
-      <Value>USB_VID=0x2886</Value>
-      <Value>USB_PID=0x802F</Value>
-      <Value>USBCON</Value>
-      <Value>USB_CONFIG_POWER=100</Value>
+      <Value>F_CPU=16000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_AVR_UNO</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
     </ListValues>
   </armgcccpp.compiler.symbols.DefSymbols>
   <armgcccpp.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcccpp.compiler.directories.IncludePaths>
@@ -199,10 +143,11 @@
   </armgcccpp.preprocessingassembler.general.IncludePaths>
 </ArmGccCpp>
     </ToolchainSettings>
-    <VMSETTING_IncludePaths>../../../UNO_nRF24L01_Accel-LED;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance;{vm.intellisense.add-paths};</VMSETTING_IncludePaths>
+    <VMSETTING_IncludePaths>../../../UNO_nRF24L01_Accel-LED;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance;{vm.intellisense.add-paths};C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src;C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino;C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard;C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr;C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include;C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility;C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1;C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino;C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard;C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG;C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED;C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src;</VMSETTING_IncludePaths>
     <VisualMicroSettings>
-      <VisualMicroSettings xmlns="">
+      <VisualMicroSettings>
         <config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>universal</config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>
+        <config.Debug.customdebug_uno_debugger_type>universal</config.Debug.customdebug_uno_debugger_type>
       </VisualMicroSettings>
     </VisualMicroSettings>
   </PropertyGroup>
@@ -216,62 +161,34 @@
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=108013</Value>
       <Value>ARDUINO_MAIN</Value>
-      <Value>F_CPU=48000000L</Value>
-      <Value>printf=iprintf</Value>
-      <Value>__SAMD__</Value>
-      <Value>ARDUINO_SEEED_XIAO_M0</Value>
-      <Value>ARDUINO_ARCH_SAMD</Value>
-      <Value>ARDUINO_SAMD_ZERO</Value>
-      <Value>__SAMD21__</Value>
-      <Value>__SAMD21G18A__</Value>
-      <Value>ARM_MATH_CM0PLUS</Value>
-      <Value>USB_VID=0x2886</Value>
-      <Value>USB_PID=0x802F</Value>
-      <Value>USBCON</Value>
-      <Value>USB_CONFIG_POWER=100</Value>
+      <Value>F_CPU=16000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_AVR_UNO</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
@@ -280,62 +197,34 @@
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>__AVR_ATmega328p__</Value>
+      <Value>__AVR_ATmega328P__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=108013</Value>
       <Value>ARDUINO_MAIN</Value>
-      <Value>F_CPU=48000000L</Value>
-      <Value>printf=iprintf</Value>
-      <Value>__SAMD__</Value>
-      <Value>ARDUINO_SEEED_XIAO_M0</Value>
-      <Value>ARDUINO_ARCH_SAMD</Value>
-      <Value>ARDUINO_SAMD_ZERO</Value>
-      <Value>__SAMD21__</Value>
-      <Value>__SAMD21G18A__</Value>
-      <Value>ARM_MATH_CM0PLUS</Value>
-      <Value>USB_VID=0x2886</Value>
-      <Value>USB_PID=0x802F</Value>
-      <Value>USBCON</Value>
-      <Value>USB_CONFIG_POWER=100</Value>
+      <Value>F_CPU=16000000L</Value>
+      <Value>__AVR__</Value>
+      <Value>ARDUINO_AVR_UNO</Value>
+      <Value>ARDUINO_ARCH_AVR</Value>
     </ListValues>
   </armgcccpp.compiler.symbols.DefSymbols>
   <armgcccpp.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcccpp.compiler.directories.IncludePaths>
@@ -364,14 +253,18 @@
   </armgcccpp.preprocessingassembler.general.IncludePaths>
 </ArmGccCpp>
     </ToolchainSettings>
-    <VMSETTING_IncludePaths>../../../UNO_nRF24L01_Accel-LED;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance;{vm.intellisense.add-paths};</VMSETTING_IncludePaths>
+    <VMSETTING_IncludePaths>../../../UNO_nRF24L01_Accel-LED;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/libraries/SPI;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED;C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/libb64;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/USB;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/variants/XIAO_m0;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/cores/arduino/TinyUSB/Adafruit_TinyUSB_ArduinoCore/tinyusb/src;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/Core/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/DSP/Include/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS-~1/120584~1.1/CMSIS-Atmel/CMSIS/Device/ATMEL/;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/arm-none-eabi;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/c++/4.8.3/bits;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/arm-none-eabi/include/sys;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/1.8.1/system;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/avr;C:/Users/robbi/AppData/Local/arduino15/packages/Seeeduino/hardware/samd/usb;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/ARM-NO~1/7-2017q4/lib/gcc/arm-none-eabi/4.8.3/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/CMSIS/include;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/instance;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0/Device/ATMEL/samd21/include/pio;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/component;C:/Users/robbi/AppData/Local/ARDUIN~1/packages/SEEEDU~1/tools/CMSIS/5404C4~1.0../../CMSIS-Atmel/1.1.0/CMSIS/Device/ATMEL/samd21/include/instance;{vm.intellisense.add-paths};C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src;C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino;C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard;C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed;C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr;C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include;C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src;C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility;C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1;C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino;C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard;C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG;C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src;C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED;C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src;</VMSETTING_IncludePaths>
     <VisualMicroSettings>
-      <VisualMicroSettings xmlns="">
+      <VisualMicroSettings>
         <config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>universal</config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>
+        <config.Debug.customdebug_uno_debugger_type>universal</config.Debug.customdebug_uno_debugger_type>
       </VisualMicroSettings>
     </VisualMicroSettings>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="UNO_nRF24L01_Accel-LED.atsln">
+      <SubType>compile</SubType>
+    </None>
     <None Include="UNO_nRF24L01_Accel-LED.ino">
       <SubType>compile</SubType>
     </None>

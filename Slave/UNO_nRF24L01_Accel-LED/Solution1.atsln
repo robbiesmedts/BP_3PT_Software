@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "UNO_nRF24L01_Accel-LED", "UNO_nRF24L01_Accel-LED.cppproj", "{F1A3DE0B-DB58-4301-BC5A-98BA79C95F05}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Release|ARM = Release|ARM
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1A3DE0B-DB58-4301-BC5A-98BA79C95F05}.Debug|ARM.ActiveCfg = Debug|ARM
+		{F1A3DE0B-DB58-4301-BC5A-98BA79C95F05}.Debug|ARM.Build.0 = Debug|ARM
+		{F1A3DE0B-DB58-4301-BC5A-98BA79C95F05}.Release|ARM.ActiveCfg = Release|ARM
+		{F1A3DE0B-DB58-4301-BC5A-98BA79C95F05}.Release|ARM.Build.0 = Release|ARM
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
