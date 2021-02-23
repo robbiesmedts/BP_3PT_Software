@@ -18,7 +18,7 @@
         enables the node to to excecute a given command until an other command is received.
         if CONTINIOUS is not active a command is excecuted once after the command is received.
 */
-#define DEBUG
+//#define DEBUG
 //#define CONTINIOUS
 #define INTERRUPT
 
@@ -64,32 +64,38 @@ uint8_t mappedReadings[2];
 /*Variables for the LED*/
 #define NUM_LEDS 9
 #define DATA_PIN 5
-#define BRIGHTNESS 128
+#define BRIGHTNESS 255
 #define numReadings 6
 
 CRGB leds[NUM_LEDS];
+CHSV hsv(0, 255, BRIGHTNESS);
 
 const int nRFint_pin = 2;
 const int MMAint_pin = 3;
+
+int16_t MMA_lowerLimit = -1200;
+int16_t MMA_upperLimit = 1200;
+
 
 void setup() {
 
   pinMode(nRFint_pin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(nRFint_pin), nRF_IRQ, LOW);
-  //pinMode(MMAint_pin, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(MMAint_pin), MMA_IRQ, LOW);
 
 #ifdef DEBUG
   Serial.begin(115200);
   printf_begin();
 #endif
+
   //Initailisation of the nRF24L01 chip
-  radio.begin();
+  if(radio.begin())
+	Serial.println("radio initialised");
+	
   radio.setAddressWidth(4);
   for (uint8_t i = 0; i < 4; i++)
     radio.openReadingPipe(i, listeningPipes[localAddr] + i);
 
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_HIGH);
 
   if (accel.init(MMA8452Q_Scale::SCALE_2G, MMA8452Q_ODR::ODR_50))
     Serial.println("Accel Initialised");
@@ -97,13 +103,14 @@ void setup() {
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
   FastLED.setBrightness(BRIGHTNESS);
 
-  if (!accel.active())
-    Serial.println("accel active");
-
 #ifdef DEBUG
   //print all settings of nRF24L01
   radio.printDetails();
 #endif
+
+  if (!accel.active())
+	Serial.println("accel active");
+	
   radio.startListening();
 }
 
@@ -143,7 +150,7 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(CRGB(0, mappedReadings[1], 255)); //GRB
+			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0, 0)); //GRB
 			break;
 
 		case 2: // read sensor and send to other actuator
@@ -156,18 +163,18 @@ void loop() {
 			radio.openWritingPipe(dataIn.destAddr);//set destination address
 			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-printf("%ld", dataIn.destAddr);
-printf("\n\rdata send: %d", dataOut.dataValue);
+	printf("%ld", dataIn.destAddr);
+	printf("\n\rdata send: %d\n\r", dataOut.dataValue);
 #endif
 			radio.startListening();
 			break;
 
 		case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
-printf("receiving address: %ld\n\r", dataIn.destAddr);
-Serial.print("received data: %d\r\n", dataIn.dataValue);
-#endif
-	  //do something
+	printf("receiving address: %ld\n\r", dataIn.destAddr);
+	printf("received data: %d\n\r", dataIn.dataValue);
+#endif			
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -182,6 +189,7 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 #endif
 	
 	FastLED.show();
+	
 /* delay om uitvoering te vertragen tot 50Hz
  * uitvoering wordt vertraagd met 20 ms 
  * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
@@ -190,10 +198,12 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 	delay(20);
 	}// end switch
 
+#endif
+
 /* Verloop uitvoering als er commando binnen komt.
  * Verloopt op interruptbasis om processing te verlagen
 */
-#else //Interrupt Single operation
+#ifndef CONTINIOUS //Interrupt Single operation
 	if(b_rx_ready){
 		b_rx_ready = 0; 
 		radio.read(&dataIn, sizeof(dataIn));
@@ -204,33 +214,43 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 
 	switch (dataIn.command){
 		case 0:
-			//to be written
+			FastLED.clear();
 			break;
 
 		case 1: //read sensor and use for own actuator
-
+			accelRead();
+			
 #ifdef DEBUG
-
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
 #endif
-
-#ifdef DEBUG
-
-#endif	
+			//mapped raw value
+			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0, 0)); //GRB	
 			break;
 
 		case 2: // read sensor and send to other actuator
+			dataOut.command = 3;
+			accelRead();
+			dataOut.dataValue = mappedReadings[1]; //sensor input
+			dataOut.destAddr = listeningPipes[localAddr];
 
+			radio.stopListening();
+			radio.openWritingPipe(dataIn.destAddr);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-
+	printf("%ld", dataIn.destAddr);
+	printf("\n\rdata send: %d", dataOut.dataValue);
 #endif
-
+			radio.startListening();
 			break;
 
 		case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
-
+	printf("receiving address: %ld\n\r", dataIn.destAddr);
+	printf("received data: %d\n\r", dataIn.dataValue);
 #endif
-
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -241,14 +261,22 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 			//do nothing
 			break;
 		}//end switch
-	}//end non-continious
+		
+#ifdef DEBUG
+	printf("Display LED");
+#endif
+		FastLED.show();
+	}//end fetch-command
+	
 #endif //endif CONTINIOUS
 
-#else
+#endif //end INTERRUPT
+
 /* Uitvoering op poll basis
  * commando wordt opgeslagen
  * en uitgevoerd tot een ander commando verzonden wordt 
 */
+#ifndef INTERRUPT
 	radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
 	if (b_rx_ready){
 		radio.read(&dataIn, sizeof(dataIn));
@@ -260,33 +288,43 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 	
 	switch (dataIn.command){
 		case 0:
-			//stop command, hold last value
+			FastLED.clear();
 			break;
 
 		case 1: //read sensor and use for own actuator
-
+			accelRead();
+			
 #ifdef DEBUG
-
-#endif 
-
-#ifdef DEBUG
-
-#endif 
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0,  0));
 			break;
 
 		case 2: // read sensor and send to other actuator
+			dataOut.command = 3;
+			accelRead();
+			dataOut.dataValue = mappedReadings[1]; //sensor input
+			dataOut.destAddr = listeningPipes[localAddr];
 
+			radio.stopListening();
+			radio.openWritingPipe(dataIn.destAddr);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-
+	printf("%ld", dataIn.destAddr);
+	printf("\n\rdata send: %d", dataOut.dataValue);
 #endif
-
+			radio.startListening();
 			break;
 
 		case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
-
+	printf("receiving address: %ld\n\r", dataIn.destAddr);
+	printf("received data: %d\n\r", dataIn.dataValue);
 #endif
-			//do something
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -296,6 +334,8 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 		default:
 			//do nothing
 			break;
+			
+		FastLED.show();
 /* delay om uitvoering te vertragen tot 50Hz
  * uitvoering wordt vertraagd met 20 ms 
  * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
@@ -303,7 +343,7 @@ Serial.print("received data: %d\r\n", dataIn.dataValue);
 */
 		delay(20);
 	}// end switch
-#endif //endif INTERRUPT
+#endif //end poll
 } //end loop
 
 //read values from accelerometer
@@ -316,21 +356,15 @@ void accelRead(void){
 	
 	map(var, fromLow, fromHigh, toLow, toHigh)
 	door de fromLow en fromHigh aan te passen veranderd de nauwkeurigheid
-	-2047 tot 2046 is de hoogste nauwkeurigheid
+	-2047 tot 2046 is de hoogste nauwkeurigheid en de kleinste verandering
 */
-  	mappedReadings[0] = map(accel.raw_x, -2000, 2000, 0, 255);
-  	mappedReadings[1] = map(accel.raw_y, -2000, 2000, 0, 255);
-  	mappedReadings[2] = map(accel.raw_z, -2000, 2000, 0, 255);
+  	mappedReadings[0] = map(accel.raw_x, MMA_lowerLimit, MMA_upperLimit, 0, 255);
+  	mappedReadings[1] = map(accel.raw_y, MMA_lowerLimit, MMA_upperLimit, 0, 255);
+  	mappedReadings[2] = map(accel.raw_z, MMA_lowerLimit, MMA_upperLimit, 0, 255);
    }
 
 void nRF_IRQ() {
   noInterrupts();
   radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
-  interrupts();
-}
-
-void MMA_IRQ() {
-  noInterrupts();
-  accel.read();
   interrupts();
 }
