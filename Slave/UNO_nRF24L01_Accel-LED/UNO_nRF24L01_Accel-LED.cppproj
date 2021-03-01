@@ -65,20 +65,20 @@
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A//lib/gcc/avr/7.3.0/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include-fixed</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.2/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.3/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
@@ -101,20 +101,20 @@
   <armgcccpp.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A//lib/gcc/avr/7.3.0/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include-fixed</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.2/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.3/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcccpp.compiler.directories.IncludePaths>
@@ -148,7 +148,7 @@
       <VisualMicroSettings>
         <config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>universal</config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>
         <config.Debug.customdebug_uno_debugger_type>universal</config.Debug.customdebug_uno_debugger_type>
-        <arduino.upload.port>COM3</arduino.upload.port>
+        <arduino.upload.port>COM5</arduino.upload.port>
         <arduino.board.name>uno</arduino.board.name>
         <arduino.board.desc>Arduino Uno</arduino.board.desc>
         <arduino.board.property_bag>name=Arduino Uno
@@ -517,20 +517,20 @@ vmresolved.tools.path=C:\Users\robbi\AppData\Local\arduino15\packages\arduino\to
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A//lib/gcc/avr/7.3.0/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include-fixed</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.2/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.3/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
@@ -553,20 +553,20 @@ vmresolved.tools.path=C:\Users\robbi\AppData\Local\arduino15\packages\arduino\to
   <armgcccpp.compiler.directories.IncludePaths>
     <ListValues>
       <Value>../../../UNO_nRF24L01_Accel-LED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/SPI/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RoboCore_-_MMA8452Q/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
-      <Value>c:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A//lib/gcc/avr/7.3.0/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include-fixed</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/avr/include/avr</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.2/include</Value>
-      <Value>C:/Users/robbi/AppData/Local/ARDUIN~1/packages/arduino/tools/avr-gcc/730-AT~1.1-A/lib/gcc/avr/4.9.3/include</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include/avr</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.2/include</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/lib/gcc/avr/4.9.3/include</Value>
       <Value>{vm.intellisense.add-paths}</Value>
     </ListValues>
   </armgcccpp.compiler.directories.IncludePaths>
@@ -600,7 +600,7 @@ vmresolved.tools.path=C:\Users\robbi\AppData\Local\arduino15\packages\arduino\to
       <VisualMicroSettings>
         <config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>universal</config.Debug.customdebug_Seeeduino_seeed_XIAO_m0_debugger_type>
         <config.Debug.customdebug_uno_debugger_type>universal</config.Debug.customdebug_uno_debugger_type>
-        <arduino.upload.port>COM3</arduino.upload.port>
+        <arduino.upload.port>COM5</arduino.upload.port>
         <arduino.board.name>uno</arduino.board.name>
         <arduino.board.desc>Arduino Uno</arduino.board.desc>
         <arduino.board.property_bag>name=Arduino Uno

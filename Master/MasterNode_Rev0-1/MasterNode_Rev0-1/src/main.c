@@ -115,7 +115,8 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *		31-40 	| Sensor to node x (dependable of source Node)
  *		41-50 	| Sensor to node y (dependable of source Node)
  *		51-60	| Sensor to node z (dependable of source Node)
- *		61-80	| (future features)
+ *		61-70	| Accel Tap
+ *		71-80	| (future features)
  *		81-90	| External node input
  *		91-100	| Sensor feedback to lighting desk
  *		101-230	| Art-Net input

@@ -40,8 +40,8 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
-   destAddr     //adres (6x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
-   dataValue    //variabele (8bits) om binnenkomende/uitgaande data in op te slagen
+   destAddr     //adres (4x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
+   dataValue    //variabele (16bits) om binnenkomende/uitgaande data in op te slagen
    command      //commando (8bits) gestuctureerd volgens command table
 
    command table
@@ -53,18 +53,17 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 */
 struct dataStruct {
   uint32_t destAddr;
-  uint16_t dataValue;
+  uint16_t dataValue; //HSB Intensity data, LSB Color data
   uint8_t command;
 } dataIn, dataOut;
 
 /*Variables for the MMA module*/
 MMA8452Q accel;
 uint8_t mappedReadings[2];
-
 /*Variables for the LED*/
-#define NUM_LEDS 9
+#define NUM_LEDS 19
 #define DATA_PIN 5
-#define BRIGHTNESS 255
+#define BRIGHTNESS 200
 #define numReadings 6
 
 CRGB leds[NUM_LEDS];
@@ -75,6 +74,7 @@ const int MMAint_pin = 3;
 
 int16_t MMA_lowerLimit = -1200;
 int16_t MMA_upperLimit = 1200;
+#define AXIS mappedReadings[0] //[0] = X, [1] = Y, [2] = Z
 
 
 void setup() {
@@ -150,13 +150,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0, 0)); //GRB
+			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 0)); //GRB
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = mappedReadings[1]; //sensor input
+			dataOut.dataValue = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
@@ -226,13 +226,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0, 0)); //GRB	
+			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 0)); //GRB	
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = mappedReadings[1]; //sensor input
+			dataOut.dataValue = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
@@ -300,13 +300,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(mappedReadings[1], 0,  0));
+			fill_solid(leds, NUM_LEDS, CRGB(AXIS 0,  0));
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = mappedReadings[1]; //sensor input
+			dataOut.dataValue = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
