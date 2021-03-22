@@ -71,8 +71,18 @@
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
@@ -107,8 +117,18 @@
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
@@ -523,8 +543,18 @@ vmresolved.tools.path=C:\Users\robbi\AppData\Local\arduino15\packages\arduino\to
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>
@@ -559,8 +589,18 @@ vmresolved.tools.path=C:\Users\robbi\AppData\Local\arduino15\packages\arduino\to
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/FastLED</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src</Value>
       <Value>C:/Users/robbi/OneDrive/Documents/Arduino/libraries/RF24-master/utility</Value>
+      <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/libraries/Wire/src/utility</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino</Value>
       <Value>C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/Users/robbi/DOCUME~1/BP_3PT~1/Slave/UNO_NR~1</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/cores/arduino</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/variants/standard</Value>
+      <Value>C:/PROGRA~2/Atmel/Studio/7.0/EXTENS~1/5z2j0qaa.hkk/MICROP~1/default/DEBUGG~1/VM_DBG</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/SPI/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/RF24-M~1</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/ROBOCO~1/src</Value>
+      <Value>C:/Users/robbi/OneDrive/DOCUME~1/Arduino/LIBRAR~1/FastLED</Value>
+      <Value>C:/PROGRA~2/Arduino/hardware/arduino/avr/LIBRAR~1/Wire/src</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr//lib/gcc/avr/7.3.0/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include</Value>
       <Value>C:/PROGRA~2/Arduino/hardware/tools/avr/avr/include-fixed</Value>

@@ -27,6 +27,7 @@
 #include <RF24.h>
 #include <RoboCore_MMA8452Q.h>
 #include <FastLED.h>
+#include <hsv2rgb.h>
 
 #ifdef DEBUG
 #include <printf.h>
@@ -61,9 +62,9 @@ struct dataStruct {
 MMA8452Q accel;
 uint8_t mappedReadings[2];
 /*Variables for the LED*/
-#define NUM_LEDS 19
+#define NUM_LEDS 12
 #define DATA_PIN 5
-#define BRIGHTNESS 200
+#define BRIGHTNESS 180
 #define numReadings 6
 
 CRGB leds[NUM_LEDS];
@@ -150,7 +151,7 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 0)); //GRB
+			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 64)); //GRB
 			break;
 
 		case 2: // read sensor and send to other actuator
@@ -185,7 +186,7 @@ void loop() {
 	  //do nothing
 		break;
 #ifdef DEBUG
-	printf("Display LED")
+	printf("Display LED\n\r")
 #endif
 	
 	FastLED.show();
@@ -226,7 +227,7 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 0)); //GRB	
+			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 64)); //GRB	
 			break;
 
 		case 2: // read sensor and send to other actuator
@@ -250,7 +251,7 @@ void loop() {
 	printf("receiving address: %ld\n\r", dataIn.destAddr);
 	printf("received data: %d\n\r", dataIn.dataValue);
 #endif
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
+      fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -263,7 +264,7 @@ void loop() {
 		}//end switch
 		
 #ifdef DEBUG
-	printf("Display LED");
+	printf("Display LED\r\n");
 #endif
 		FastLED.show();
 	}//end fetch-command

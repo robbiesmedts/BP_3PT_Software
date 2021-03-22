@@ -60,7 +60,8 @@ struct dataStruct{
 
 static const uint32_t listeningPipes[6] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL, 0x3A3A3A0A}; //unieke adressen gebruikt door de nodes.
 static uint16_t artnetDmxAddress = 1;
-static const uint8_t nodes = 5; //number of sensor nodes
+
+static const uint8_t nodes = 1; //number of sensor nodes
 
 #ifdef _DEBUG_
 /**
@@ -320,7 +321,7 @@ int main (void)
 
 	spi_master_initialize();
 	nRF24_begin();
-	nRF24_setPALevel(RF_PA_MIN);
+	nRF24_setPALevel(RF_PA_HIGH);
 	nRF24_stopListening();
 	
 #ifdef _DEBUG_

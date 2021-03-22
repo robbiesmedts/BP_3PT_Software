@@ -33,9 +33,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  14 .debug_line   00012217  00000000  00000000  00064ee0  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_str    000a4d09  00000000  00000000  000770f7  2**0
+ 15 .debug_str    000a4d05  00000000  00000000  000770f7  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_frame  00002d40  00000000  00000000  0011be00  2**2
+ 16 .debug_frame  00002d40  00000000  00000000  0011bdfc  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1812,68 +1812,99 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400d94:	00402e05 	.word	0x00402e05
 
 00400d98 <print_address_register>:
+{
+	printf("STATUS\t\t = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n", status, (status & (1<<RX_DR)) ? 1 : 0, (status & (1<<TX_DS)) ? 1 : 0, (status & (1<<MAX_RT)) ? 1 : 0, (status & (1<<RX_P_NO)) ? 1 : 0, (status & (1<<TX_FULL)) ? 1 : 0);
+}
+
+static void print_address_register(const char* name, uint8_t reg, uint8_t qty)
+{
   400d98:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
   400d9c:	b083      	sub	sp, #12
   400d9e:	af00      	add	r7, sp, #0
   400da0:	460e      	mov	r6, r1
   400da2:	4614      	mov	r4, r2
+	printf("%s\t", name);
   400da4:	4601      	mov	r1, r0
   400da6:	4829      	ldr	r0, [pc, #164]	; (400e4c <print_address_register+0xb4>)
   400da8:	4b29      	ldr	r3, [pc, #164]	; (400e50 <print_address_register+0xb8>)
   400daa:	4798      	blx	r3
+	while(qty--){
   400dac:	2c00      	cmp	r4, #0
   400dae:	d045      	beq.n	400e3c <print_address_register+0xa4>
   400db0:	4434      	add	r4, r6
   400db2:	fa5f fa84 	uxtb.w	sl, r4
+		uint8_t buffer[addr_width];
   400db6:	f8df b0a8 	ldr.w	fp, [pc, #168]	; 400e60 <print_address_register+0xc8>
+	while(qty--){
   400dba:	f8c7 d004 	str.w	sp, [r7, #4]
+		uint8_t buffer[addr_width];
   400dbe:	f89b 4000 	ldrb.w	r4, [fp]
   400dc2:	1de3      	adds	r3, r4, #7
   400dc4:	f023 0307 	bic.w	r3, r3, #7
   400dc8:	ebad 0d03 	sub.w	sp, sp, r3
   400dcc:	466d      	mov	r5, sp
+		read_register(reg++, buffer, sizeof(buffer));
   400dce:	f106 0901 	add.w	r9, r6, #1
   400dd2:	fa5f f989 	uxtb.w	r9, r9
+{
   400dd6:	f8c7 d000 	str.w	sp, [r7]
+	uint8_t status[len+1];
   400dda:	f104 0308 	add.w	r3, r4, #8
   400dde:	f023 0307 	bic.w	r3, r3, #7
   400de2:	ebad 0d03 	sub.w	sp, sp, r3
+	status[0] = R_REGISTER | (REGISTER_MASK & reg);
   400de6:	f006 061f 	and.w	r6, r6, #31
   400dea:	f88d 6000 	strb.w	r6, [sp]
+	spi_master_transfer(&status, sizeof(status));
   400dee:	1c61      	adds	r1, r4, #1
   400df0:	4668      	mov	r0, sp
   400df2:	4b18      	ldr	r3, [pc, #96]	; (400e54 <print_address_register+0xbc>)
   400df4:	4798      	blx	r3
+	for (uint8_t i = 0; i< len; i++)
   400df6:	b15c      	cbz	r4, 400e10 <print_address_register+0x78>
   400df8:	f10d 0801 	add.w	r8, sp, #1
   400dfc:	1e6b      	subs	r3, r5, #1
   400dfe:	1e61      	subs	r1, r4, #1
   400e00:	fa55 f181 	uxtab	r1, r5, r1
+		buf[i] = status[i+1];
   400e04:	f818 2b01 	ldrb.w	r2, [r8], #1
   400e08:	f803 2f01 	strb.w	r2, [r3, #1]!
+	for (uint8_t i = 0; i< len; i++)
   400e0c:	428b      	cmp	r3, r1
   400e0e:	d1f9      	bne.n	400e04 <print_address_register+0x6c>
   400e10:	f8d7 d000 	ldr.w	sp, [r7]
+		
+		printf(" 0x");
   400e14:	4810      	ldr	r0, [pc, #64]	; (400e58 <print_address_register+0xc0>)
   400e16:	4b0e      	ldr	r3, [pc, #56]	; (400e50 <print_address_register+0xb8>)
   400e18:	4798      	blx	r3
+		uint8_t* bufptr = buffer + sizeof(buffer);
+		while(--bufptr >= buffer){
   400e1a:	3c01      	subs	r4, #1
   400e1c:	192c      	adds	r4, r5, r4
   400e1e:	d208      	bcs.n	400e32 <print_address_register+0x9a>
+			printf("%02x", *bufptr);
   400e20:	f8df 8040 	ldr.w	r8, [pc, #64]	; 400e64 <print_address_register+0xcc>
   400e24:	4e0a      	ldr	r6, [pc, #40]	; (400e50 <print_address_register+0xb8>)
   400e26:	f814 1901 	ldrb.w	r1, [r4], #-1
   400e2a:	4640      	mov	r0, r8
   400e2c:	47b0      	blx	r6
+		while(--bufptr >= buffer){
   400e2e:	42a5      	cmp	r5, r4
   400e30:	d9f9      	bls.n	400e26 <print_address_register+0x8e>
   400e32:	f8d7 d004 	ldr.w	sp, [r7, #4]
+		read_register(reg++, buffer, sizeof(buffer));
   400e36:	464e      	mov	r6, r9
+	while(qty--){
   400e38:	45d1      	cmp	r9, sl
   400e3a:	d1be      	bne.n	400dba <print_address_register+0x22>
+		}
+	}
+	printf("\r\n");
   400e3c:	4807      	ldr	r0, [pc, #28]	; (400e5c <print_address_register+0xc4>)
   400e3e:	4b04      	ldr	r3, [pc, #16]	; (400e50 <print_address_register+0xb8>)
   400e40:	4798      	blx	r3
+}
   400e42:	370c      	adds	r7, #12
   400e44:	46bd      	mov	sp, r7
   400e46:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
@@ -1887,29 +1918,37 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400e64:	00405cbc 	.word	0x00405cbc
 
 00400e68 <writeRegister>:
+{
   400e68:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
   400e6a:	af00      	add	r7, sp, #0
+	uint8_t p_buf[length+1];
   400e6c:	1c56      	adds	r6, r2, #1
   400e6e:	f102 0308 	add.w	r3, r2, #8
   400e72:	f023 0307 	bic.w	r3, r3, #7
   400e76:	ebad 0d03 	sub.w	sp, sp, r3
   400e7a:	466d      	mov	r5, sp
+	p_buf[0] = (W_REGISTER | (REGISTER_MASK & reg));
   400e7c:	f000 001f 	and.w	r0, r0, #31
   400e80:	f040 0020 	orr.w	r0, r0, #32
   400e84:	f88d 0000 	strb.w	r0, [sp]
+	for (uint8_t i = 0; i < length; i++)
   400e88:	b152      	cbz	r2, 400ea0 <writeRegister+0x38>
   400e8a:	1e4b      	subs	r3, r1, #1
   400e8c:	1c68      	adds	r0, r5, #1
   400e8e:	3a01      	subs	r2, #1
   400e90:	fa51 f482 	uxtab	r4, r1, r2
+		p_buf[i+1] = (*buf++);
   400e94:	f813 2f01 	ldrb.w	r2, [r3, #1]!
   400e98:	f800 2b01 	strb.w	r2, [r0], #1
+	for (uint8_t i = 0; i < length; i++)
   400e9c:	42a3      	cmp	r3, r4
   400e9e:	d1f9      	bne.n	400e94 <writeRegister+0x2c>
+	spi_master_transfer(p_buf, sizeof(p_buf));
   400ea0:	4631      	mov	r1, r6
   400ea2:	4628      	mov	r0, r5
   400ea4:	4b02      	ldr	r3, [pc, #8]	; (400eb0 <writeRegister+0x48>)
   400ea6:	4798      	blx	r3
+}
   400ea8:	7828      	ldrb	r0, [r5, #0]
   400eaa:	46bd      	mov	sp, r7
   400eac:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
@@ -1917,32 +1956,43 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400eb0:	004015dd 	.word	0x004015dd
 
 00400eb4 <nRF24_readRegister>:
+{
   400eb4:	b500      	push	{lr}
   400eb6:	b083      	sub	sp, #12
+	uint8_t cmd[2] = {R_REGISTER | (REGISTER_MASK & reg), 0xFF};
   400eb8:	f000 001f 	and.w	r0, r0, #31
   400ebc:	f88d 0004 	strb.w	r0, [sp, #4]
   400ec0:	23ff      	movs	r3, #255	; 0xff
   400ec2:	f88d 3005 	strb.w	r3, [sp, #5]
+	spi_master_transfer(&cmd, sizeof(cmd));
   400ec6:	2102      	movs	r1, #2
   400ec8:	a801      	add	r0, sp, #4
   400eca:	4b03      	ldr	r3, [pc, #12]	; (400ed8 <nRF24_readRegister+0x24>)
   400ecc:	4798      	blx	r3
+}
   400ece:	f89d 0005 	ldrb.w	r0, [sp, #5]
   400ed2:	b003      	add	sp, #12
   400ed4:	f85d fb04 	ldr.w	pc, [sp], #4
   400ed8:	004015dd 	.word	0x004015dd
 
 00400edc <print_byte_register>:
+
+static void print_byte_register(const char* name, uint8_t reg, uint8_t qty)
+{
   400edc:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
   400ee0:	460d      	mov	r5, r1
   400ee2:	4616      	mov	r6, r2
+	printf("%s\t", name);
   400ee4:	4601      	mov	r1, r0
   400ee6:	480d      	ldr	r0, [pc, #52]	; (400f1c <print_byte_register+0x40>)
   400ee8:	4b0d      	ldr	r3, [pc, #52]	; (400f20 <print_byte_register+0x44>)
   400eea:	4798      	blx	r3
+	while (qty--)
   400eec:	b186      	cbz	r6, 400f10 <print_byte_register+0x34>
   400eee:	442e      	add	r6, r5
   400ef0:	b2f6      	uxtb	r6, r6
+	{
+		printf(" 0x%02x", nRF24_readRegister(reg++));
   400ef2:	f8df 9034 	ldr.w	r9, [pc, #52]	; 400f28 <print_byte_register+0x4c>
   400ef6:	f8df 8034 	ldr.w	r8, [pc, #52]	; 400f2c <print_byte_register+0x50>
   400efa:	4f09      	ldr	r7, [pc, #36]	; (400f20 <print_byte_register+0x44>)
@@ -1954,8 +2004,11 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400f06:	4640      	mov	r0, r8
   400f08:	47b8      	blx	r7
   400f0a:	4625      	mov	r5, r4
+	while (qty--)
   400f0c:	42a6      	cmp	r6, r4
   400f0e:	d1f5      	bne.n	400efc <print_byte_register+0x20>
+	}
+	printf("\r\n");
   400f10:	4804      	ldr	r0, [pc, #16]	; (400f24 <print_byte_register+0x48>)
   400f12:	4b03      	ldr	r3, [pc, #12]	; (400f20 <print_byte_register+0x44>)
   400f14:	4798      	blx	r3
@@ -1968,16 +2021,21 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400f2c:	00405cc4 	.word	0x00405cc4
 
 00400f30 <nRF24_writeRegister>:
+{
   400f30:	b500      	push	{lr}
   400f32:	b083      	sub	sp, #12
+	p_buf[0] = (W_REGISTER | (REGISTER_MASK & reg));
   400f34:	f000 001f 	and.w	r0, r0, #31
   400f38:	f040 0020 	orr.w	r0, r0, #32
   400f3c:	f88d 0004 	strb.w	r0, [sp, #4]
+	p_buf[1] = val;
   400f40:	f88d 1005 	strb.w	r1, [sp, #5]
+	spi_master_transfer(p_buf, sizeof(p_buf));
   400f44:	2102      	movs	r1, #2
   400f46:	a801      	add	r0, sp, #4
   400f48:	4b03      	ldr	r3, [pc, #12]	; (400f58 <nRF24_writeRegister+0x28>)
   400f4a:	4798      	blx	r3
+}
   400f4c:	f89d 0004 	ldrb.w	r0, [sp, #4]
   400f50:	b003      	add	sp, #12
   400f52:	f85d fb04 	ldr.w	pc, [sp], #4
@@ -1985,69 +2043,90 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400f58:	004015dd 	.word	0x004015dd
 
 00400f5c <nRF24_FlushRx>:
+{
   400f5c:	b500      	push	{lr}
   400f5e:	b083      	sub	sp, #12
+	cmd = FLUSH_RX;
   400f60:	a802      	add	r0, sp, #8
   400f62:	23e2      	movs	r3, #226	; 0xe2
   400f64:	f800 3d01 	strb.w	r3, [r0, #-1]!
+	spi_master_transfer(&cmd, sizeof(cmd));
   400f68:	2101      	movs	r1, #1
   400f6a:	4b03      	ldr	r3, [pc, #12]	; (400f78 <nRF24_FlushRx+0x1c>)
   400f6c:	4798      	blx	r3
+}
   400f6e:	f89d 0007 	ldrb.w	r0, [sp, #7]
   400f72:	b003      	add	sp, #12
   400f74:	f85d fb04 	ldr.w	pc, [sp], #4
   400f78:	004015dd 	.word	0x004015dd
 
 00400f7c <nRF24_FlushTx>:
+{
   400f7c:	b500      	push	{lr}
   400f7e:	b083      	sub	sp, #12
+	cmd = FLUSH_TX;
   400f80:	a802      	add	r0, sp, #8
   400f82:	23e1      	movs	r3, #225	; 0xe1
   400f84:	f800 3d01 	strb.w	r3, [r0, #-1]!
+	spi_master_transfer(&cmd, sizeof(cmd));
   400f88:	2101      	movs	r1, #1
   400f8a:	4b03      	ldr	r3, [pc, #12]	; (400f98 <nRF24_FlushTx+0x1c>)
   400f8c:	4798      	blx	r3
+}
   400f8e:	f89d 0007 	ldrb.w	r0, [sp, #7]
   400f92:	b003      	add	sp, #12
   400f94:	f85d fb04 	ldr.w	pc, [sp], #4
   400f98:	004015dd 	.word	0x004015dd
 
 00400f9c <nRF24_getStatus>:
+{
   400f9c:	b500      	push	{lr}
   400f9e:	b083      	sub	sp, #12
+	cmd = RF24_NOP;
   400fa0:	a802      	add	r0, sp, #8
   400fa2:	23ff      	movs	r3, #255	; 0xff
   400fa4:	f800 3d01 	strb.w	r3, [r0, #-1]!
+	spi_master_transfer(&cmd, sizeof(cmd));
   400fa8:	2101      	movs	r1, #1
   400faa:	4b03      	ldr	r3, [pc, #12]	; (400fb8 <nRF24_getStatus+0x1c>)
   400fac:	4798      	blx	r3
+}
   400fae:	f89d 0007 	ldrb.w	r0, [sp, #7]
   400fb2:	b003      	add	sp, #12
   400fb4:	f85d fb04 	ldr.w	pc, [sp], #4
   400fb8:	004015dd 	.word	0x004015dd
 
 00400fbc <nRF24_setDataRate>:
+{
   400fbc:	b538      	push	{r3, r4, r5, lr}
   400fbe:	4605      	mov	r5, r0
+	uint8_t setup = nRF24_readRegister(RF_SETUP);
   400fc0:	2006      	movs	r0, #6
   400fc2:	4b0c      	ldr	r3, [pc, #48]	; (400ff4 <nRF24_setDataRate+0x38>)
   400fc4:	4798      	blx	r3
+	setup &= ~((1<<RF_DR));
   400fc6:	f000 04f7 	and.w	r4, r0, #247	; 0xf7
+	if (speed == RF24_2MBPS) {
   400fca:	2d01      	cmp	r5, #1
   400fcc:	d00b      	beq.n	400fe6 <nRF24_setDataRate+0x2a>
+	nRF24_writeRegister(RF_SETUP, setup);
   400fce:	4621      	mov	r1, r4
   400fd0:	2006      	movs	r0, #6
   400fd2:	4b09      	ldr	r3, [pc, #36]	; (400ff8 <nRF24_setDataRate+0x3c>)
   400fd4:	4798      	blx	r3
+	if(nRF24_readRegister(RF_SETUP) == setup)
   400fd6:	2006      	movs	r0, #6
   400fd8:	4b06      	ldr	r3, [pc, #24]	; (400ff4 <nRF24_setDataRate+0x38>)
   400fda:	4798      	blx	r3
+}
   400fdc:	4284      	cmp	r4, r0
   400fde:	bf14      	ite	ne
   400fe0:	2000      	movne	r0, #0
   400fe2:	2001      	moveq	r0, #1
   400fe4:	bd38      	pop	{r3, r4, r5, pc}
+		setup |= (1<<RF_DR);
   400fe6:	f044 0408 	orr.w	r4, r4, #8
+		txDelay = 65;
   400fea:	2241      	movs	r2, #65	; 0x41
   400fec:	4b03      	ldr	r3, [pc, #12]	; (400ffc <nRF24_setDataRate+0x40>)
   400fee:	601a      	str	r2, [r3, #0]
@@ -2058,11 +2137,15 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   400ffc:	204082e8 	.word	0x204082e8
 
 00401000 <getDataRate>:
+{
   401000:	b508      	push	{r3, lr}
+	uint8_t dr = nRF24_readRegister(RF_SETUP) & ((1<<RF_DR_LOW) | (1<<RF_DR_HIGH));
   401002:	2006      	movs	r0, #6
   401004:	4b04      	ldr	r3, [pc, #16]	; (401018 <getDataRate+0x18>)
   401006:	4798      	blx	r3
+	if (dr == (1<<RF_DR_HIGH)) {
   401008:	f000 0028 	and.w	r0, r0, #40	; 0x28
+}
   40100c:	2808      	cmp	r0, #8
   40100e:	bf14      	ite	ne
   401010:	2000      	movne	r0, #0
@@ -2072,17 +2155,24 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401018:	00400eb5 	.word	0x00400eb5
 
 0040101c <nRF24_setCRCLength>:
+{
   40101c:	b510      	push	{r4, lr}
   40101e:	4604      	mov	r4, r0
+	uint8_t config = nRF24_readRegister(NRF_CONFIG) & ~((1<<CRCO) | (1<<EN_CRC));
   401020:	2000      	movs	r0, #0
   401022:	4b07      	ldr	r3, [pc, #28]	; (401040 <nRF24_setCRCLength+0x24>)
   401024:	4798      	blx	r3
   401026:	f000 01f3 	and.w	r1, r0, #243	; 0xf3
+	if (length == RF24_CRC_DISABLED){
   40102a:	b12c      	cbz	r4, 401038 <nRF24_setCRCLength+0x1c>
+	else if (length == RF24_CRC_8){
   40102c:	2c01      	cmp	r4, #1
+		config |= (1<<EN_CRC);
   40102e:	bf0c      	ite	eq
   401030:	f041 0108 	orreq.w	r1, r1, #8
+		config |= (1<<CRCO);
   401034:	f041 010c 	orrne.w	r1, r1, #12
+	nRF24_writeRegister(NRF_CONFIG, config);
   401038:	2000      	movs	r0, #0
   40103a:	4b02      	ldr	r3, [pc, #8]	; (401044 <nRF24_setCRCLength+0x28>)
   40103c:	4798      	blx	r3
@@ -2091,19 +2181,27 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401044:	00400f31 	.word	0x00400f31
 
 00401048 <getCRCLength>:
+{
   401048:	b538      	push	{r3, r4, r5, lr}
+	uint8_t config = nRF24_readRegister(NRF_CONFIG) & ((1<<CRCO) | (1<<EN_CRC));
   40104a:	2000      	movs	r0, #0
   40104c:	4d08      	ldr	r5, [pc, #32]	; (401070 <getCRCLength+0x28>)
   40104e:	47a8      	blx	r5
   401050:	4604      	mov	r4, r0
+	uint8_t AA = nRF24_readRegister(EN_AA);
   401052:	2001      	movs	r0, #1
   401054:	47a8      	blx	r5
+    if (config & (1<<EN_CRC) || AA) {
   401056:	f014 0f08 	tst.w	r4, #8
   40105a:	d102      	bne.n	401062 <getCRCLength+0x1a>
   40105c:	b908      	cbnz	r0, 401062 <getCRCLength+0x1a>
+	rf24_crclength_e result = RF24_CRC_DISABLED;
   40105e:	2000      	movs	r0, #0
+}
   401060:	bd38      	pop	{r3, r4, r5, pc}
+	    if (config & (1<<CRCO)) {
   401062:	f004 0404 	and.w	r4, r4, #4
+		    result = RF24_CRC_8;
   401066:	2c00      	cmp	r4, #0
   401068:	bf14      	ite	ne
   40106a:	2002      	movne	r0, #2
@@ -2112,40 +2210,54 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401070:	00400eb5 	.word	0x00400eb5
 
 00401074 <nRF24_setPALevel>:
+{
   401074:	b510      	push	{r4, lr}
   401076:	4604      	mov	r4, r0
+	uint8_t setup = nRF24_readRegister(RF_SETUP) & 0xF8;
   401078:	2006      	movs	r0, #6
   40107a:	4b08      	ldr	r3, [pc, #32]	; (40109c <nRF24_setPALevel+0x28>)
   40107c:	4798      	blx	r3
   40107e:	f000 01f8 	and.w	r1, r0, #248	; 0xf8
+	if (level > 3) {
   401082:	2c03      	cmp	r4, #3
   401084:	d808      	bhi.n	401098 <nRF24_setPALevel+0x24>
+		level = (level << 1) + 1;
   401086:	0064      	lsls	r4, r4, #1
   401088:	3401      	adds	r4, #1
   40108a:	f004 04ff 	and.w	r4, r4, #255	; 0xff
+	nRF24_writeRegister(RF_SETUP, setup |= level);
   40108e:	4321      	orrs	r1, r4
   401090:	2006      	movs	r0, #6
   401092:	4b03      	ldr	r3, [pc, #12]	; (4010a0 <nRF24_setPALevel+0x2c>)
   401094:	4798      	blx	r3
   401096:	bd10      	pop	{r4, pc}
+		level = (RF_PA_MAX << 1) + 1;
   401098:	2407      	movs	r4, #7
   40109a:	e7f8      	b.n	40108e <nRF24_setPALevel+0x1a>
   40109c:	00400eb5 	.word	0x00400eb5
   4010a0:	00400f31 	.word	0x00400f31
 
 004010a4 <nRF24_getPALevel>:
+{
   4010a4:	b508      	push	{r3, lr}
+	return (nRF24_readRegister(RF_SETUP) & (1<<(RF_PWR_LOW) | (1<<RF_PWR_HIGH))) >> 1;
   4010a6:	2006      	movs	r0, #6
   4010a8:	4b02      	ldr	r3, [pc, #8]	; (4010b4 <nRF24_getPALevel+0x10>)
   4010aa:	4798      	blx	r3
+}
   4010ac:	f3c0 0041 	ubfx	r0, r0, #1, #2
   4010b0:	bd08      	pop	{r3, pc}
   4010b2:	bf00      	nop
   4010b4:	00400eb5 	.word	0x00400eb5
 
 004010b8 <printDetails>:
+}
+
+void printDetails(void)
+{
   4010b8:	b570      	push	{r4, r5, r6, lr}
   4010ba:	b084      	sub	sp, #16
+	printf("SPI Speed\t = %ld MHz\r\n",gs_ul_spi_clock/1000000);
   4010bc:	4b31      	ldr	r3, [pc, #196]	; (401184 <printDetails+0xcc>)
   4010be:	6819      	ldr	r1, [r3, #0]
   4010c0:	4b31      	ldr	r3, [pc, #196]	; (401188 <printDetails+0xd0>)
@@ -2154,9 +2266,11 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4010c8:	4830      	ldr	r0, [pc, #192]	; (40118c <printDetails+0xd4>)
   4010ca:	4d31      	ldr	r5, [pc, #196]	; (401190 <printDetails+0xd8>)
   4010cc:	47a8      	blx	r5
+	print_status(nRF24_getStatus());
   4010ce:	4b31      	ldr	r3, [pc, #196]	; (401194 <printDetails+0xdc>)
   4010d0:	4798      	blx	r3
   4010d2:	4601      	mov	r1, r0
+	printf("STATUS\t\t = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n", status, (status & (1<<RX_DR)) ? 1 : 0, (status & (1<<TX_DS)) ? 1 : 0, (status & (1<<MAX_RT)) ? 1 : 0, (status & (1<<RX_P_NO)) ? 1 : 0, (status & (1<<TX_FULL)) ? 1 : 0);
   4010d4:	f000 0301 	and.w	r3, r0, #1
   4010d8:	9302      	str	r3, [sp, #8]
   4010da:	f3c0 0340 	ubfx	r3, r0, #1, #1
@@ -2167,73 +2281,91 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4010ea:	f3c0 1280 	ubfx	r2, r0, #6, #1
   4010ee:	482a      	ldr	r0, [pc, #168]	; (401198 <printDetails+0xe0>)
   4010f0:	47a8      	blx	r5
+	print_address_register("RX_ADDR_P0-1", RX_ADDR_P0, 2);
   4010f2:	2202      	movs	r2, #2
   4010f4:	210a      	movs	r1, #10
   4010f6:	4829      	ldr	r0, [pc, #164]	; (40119c <printDetails+0xe4>)
   4010f8:	4e29      	ldr	r6, [pc, #164]	; (4011a0 <printDetails+0xe8>)
   4010fa:	47b0      	blx	r6
+	print_byte_register("RX_ADDR_P2-5", RX_ADDR_P2, 4);
   4010fc:	2204      	movs	r2, #4
   4010fe:	210c      	movs	r1, #12
   401100:	4828      	ldr	r0, [pc, #160]	; (4011a4 <printDetails+0xec>)
   401102:	4c29      	ldr	r4, [pc, #164]	; (4011a8 <printDetails+0xf0>)
   401104:	47a0      	blx	r4
+	print_address_register("TX_ADDR\t", TX_ADDR, 1);
   401106:	2201      	movs	r2, #1
   401108:	2110      	movs	r1, #16
   40110a:	4828      	ldr	r0, [pc, #160]	; (4011ac <printDetails+0xf4>)
   40110c:	47b0      	blx	r6
+
+	print_byte_register("RX_PW_P0-5", RX_PW_P0, 6);
   40110e:	2206      	movs	r2, #6
   401110:	2111      	movs	r1, #17
   401112:	4827      	ldr	r0, [pc, #156]	; (4011b0 <printDetails+0xf8>)
   401114:	47a0      	blx	r4
+	print_byte_register("SETUP_AW", SETUP_AW, 1);
   401116:	2201      	movs	r2, #1
   401118:	2103      	movs	r1, #3
   40111a:	4826      	ldr	r0, [pc, #152]	; (4011b4 <printDetails+0xfc>)
   40111c:	47a0      	blx	r4
+	print_byte_register("EN_AA\t", EN_AA, 1);
   40111e:	2201      	movs	r2, #1
   401120:	4611      	mov	r1, r2
   401122:	4825      	ldr	r0, [pc, #148]	; (4011b8 <printDetails+0x100>)
   401124:	47a0      	blx	r4
+	print_byte_register("EN_RXADDR", EN_RXADDR, 1);
   401126:	2201      	movs	r2, #1
   401128:	2102      	movs	r1, #2
   40112a:	4824      	ldr	r0, [pc, #144]	; (4011bc <printDetails+0x104>)
   40112c:	47a0      	blx	r4
+	print_byte_register("RF_CH\t", RF_CH, 1);
   40112e:	2201      	movs	r2, #1
   401130:	2105      	movs	r1, #5
   401132:	4823      	ldr	r0, [pc, #140]	; (4011c0 <printDetails+0x108>)
   401134:	47a0      	blx	r4
+	print_byte_register("RF_SETUP", RF_SETUP, 1);
   401136:	2201      	movs	r2, #1
   401138:	2106      	movs	r1, #6
   40113a:	4822      	ldr	r0, [pc, #136]	; (4011c4 <printDetails+0x10c>)
   40113c:	47a0      	blx	r4
+	print_byte_register("CONFIG\t", NRF_CONFIG, 1);
   40113e:	2201      	movs	r2, #1
   401140:	2100      	movs	r1, #0
   401142:	4821      	ldr	r0, [pc, #132]	; (4011c8 <printDetails+0x110>)
   401144:	47a0      	blx	r4
+	print_byte_register("DYNPD/FEATURE", DYNPD, 2);
   401146:	2202      	movs	r2, #2
   401148:	211c      	movs	r1, #28
   40114a:	4820      	ldr	r0, [pc, #128]	; (4011cc <printDetails+0x114>)
   40114c:	47a0      	blx	r4
+	
+	printf("Data Rate\t = %s\r\n", rf24_datarate_e_str_P[getDataRate()]);
   40114e:	4b20      	ldr	r3, [pc, #128]	; (4011d0 <printDetails+0x118>)
   401150:	4798      	blx	r3
   401152:	4b20      	ldr	r3, [pc, #128]	; (4011d4 <printDetails+0x11c>)
   401154:	f853 1020 	ldr.w	r1, [r3, r0, lsl #2]
   401158:	481f      	ldr	r0, [pc, #124]	; (4011d8 <printDetails+0x120>)
   40115a:	47a8      	blx	r5
+	printf("Model\t\t = %s\r\n", rf24_model_e_str_P[isPVariant()]);
   40115c:	491f      	ldr	r1, [pc, #124]	; (4011dc <printDetails+0x124>)
   40115e:	4820      	ldr	r0, [pc, #128]	; (4011e0 <printDetails+0x128>)
   401160:	47a8      	blx	r5
+	printf("CRC Length\t = %s\r\n", rf24_crclength_e_str_P[getCRCLength()]);
   401162:	4b20      	ldr	r3, [pc, #128]	; (4011e4 <printDetails+0x12c>)
   401164:	4798      	blx	r3
   401166:	4b20      	ldr	r3, [pc, #128]	; (4011e8 <printDetails+0x130>)
   401168:	f853 1020 	ldr.w	r1, [r3, r0, lsl #2]
   40116c:	481f      	ldr	r0, [pc, #124]	; (4011ec <printDetails+0x134>)
   40116e:	47a8      	blx	r5
+	printf("PA Power\t = %s\r\n", rf24_pa_dbm_e_str_P[nRF24_getPALevel()]);
   401170:	4b1f      	ldr	r3, [pc, #124]	; (4011f0 <printDetails+0x138>)
   401172:	4798      	blx	r3
   401174:	4b1f      	ldr	r3, [pc, #124]	; (4011f4 <printDetails+0x13c>)
   401176:	f853 1020 	ldr.w	r1, [r3, r0, lsl #2]
   40117a:	481f      	ldr	r0, [pc, #124]	; (4011f8 <printDetails+0x140>)
   40117c:	47a8      	blx	r5
+}
   40117e:	b004      	add	sp, #16
   401180:	bd70      	pop	{r4, r5, r6, pc}
   401182:	bf00      	nop
@@ -2269,23 +2401,37 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4011f8:	00405ca0 	.word	0x00405ca0
 
 004011fc <nRF24_setAddressWidth>:
+ * 
+ * \param width address width
+ *
+ */
+void nRF24_setAddressWidth(uint8_t width)
+{
   4011fc:	b510      	push	{r4, lr}
+	if (width -= 2){
   4011fe:	3802      	subs	r0, #2
   401200:	f010 00ff 	ands.w	r0, r0, #255	; 0xff
   401204:	d107      	bne.n	401216 <nRF24_setAddressWidth+0x1a>
+		nRF24_writeRegister(SETUP_AW, width % 4);
+		addr_width = (width % 4) + 2;
+		} else {
+		nRF24_writeRegister(SETUP_AW, 0);
   401206:	2100      	movs	r1, #0
   401208:	2003      	movs	r0, #3
   40120a:	4b08      	ldr	r3, [pc, #32]	; (40122c <nRF24_setAddressWidth+0x30>)
   40120c:	4798      	blx	r3
+		addr_width = 2;
   40120e:	2202      	movs	r2, #2
   401210:	4b07      	ldr	r3, [pc, #28]	; (401230 <nRF24_setAddressWidth+0x34>)
   401212:	701a      	strb	r2, [r3, #0]
   401214:	bd10      	pop	{r4, pc}
+		nRF24_writeRegister(SETUP_AW, width % 4);
   401216:	f000 0403 	and.w	r4, r0, #3
   40121a:	4621      	mov	r1, r4
   40121c:	2003      	movs	r0, #3
   40121e:	4b03      	ldr	r3, [pc, #12]	; (40122c <nRF24_setAddressWidth+0x30>)
   401220:	4798      	blx	r3
+		addr_width = (width % 4) + 2;
   401222:	1ca0      	adds	r0, r4, #2
   401224:	4b02      	ldr	r3, [pc, #8]	; (401230 <nRF24_setAddressWidth+0x34>)
   401226:	7018      	strb	r0, [r3, #0]
@@ -2295,15 +2441,25 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401230:	204082dc 	.word	0x204082dc
 
 00401234 <toggle_features>:
+/**
+ * \brief toggels ACK features
+ *
+ */
+void toggle_features(void)
+{
   401234:	b500      	push	{lr}
   401236:	b083      	sub	sp, #12
+	uint8_t config[2] = {ACTIVATE, 0x73};
   401238:	4b05      	ldr	r3, [pc, #20]	; (401250 <toggle_features+0x1c>)
   40123a:	881b      	ldrh	r3, [r3, #0]
   40123c:	a802      	add	r0, sp, #8
   40123e:	f820 3d04 	strh.w	r3, [r0, #-4]!
+	
+	spi_master_transfer(config, sizeof(config));
   401242:	2102      	movs	r1, #2
   401244:	4b03      	ldr	r3, [pc, #12]	; (401254 <toggle_features+0x20>)
   401246:	4798      	blx	r3
+}
   401248:	b003      	add	sp, #12
   40124a:	f85d fb04 	ldr.w	pc, [sp], #4
   40124e:	bf00      	nop
@@ -2311,10 +2467,21 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401254:	004015dd 	.word	0x004015dd
 
 00401258 <nRF24_setChannel>:
+ * 
+ * \param channel ferquency channel used
+ *
+ */
+void nRF24_setChannel(uint8_t channel)
+{
   401258:	b508      	push	{r3, lr}
+	const uint8_t max_channel = 125;
+	if (channel > max_channel)
   40125a:	287d      	cmp	r0, #125	; 0x7d
+		nRF24_writeRegister(RF_CH, max_channel);
   40125c:	bf8c      	ite	hi
   40125e:	217d      	movhi	r1, #125	; 0x7d
+	else
+		nRF24_writeRegister(RF_CH, channel);
   401260:	4601      	movls	r1, r0
   401262:	2005      	movs	r0, #5
   401264:	4b01      	ldr	r3, [pc, #4]	; (40126c <nRF24_setChannel+0x14>)
@@ -2324,21 +2491,34 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   40126c:	00400f31 	.word	0x00400f31
 
 00401270 <nRF24_powerUp>:
+/**
+ * \brief power up the internal logic of the nRF24 chip
+ * 
+ */
+void nRF24_powerUp(void)
+{
   401270:	b508      	push	{r3, lr}
+	uint8_t config = nRF24_readRegister(NRF_CONFIG);
   401272:	2000      	movs	r0, #0
   401274:	4b07      	ldr	r3, [pc, #28]	; (401294 <nRF24_powerUp+0x24>)
   401276:	4798      	blx	r3
+	
+	if (!(config & (1<<PWR_UP))){
   401278:	f010 0f02 	tst.w	r0, #2
   40127c:	d000      	beq.n	401280 <nRF24_powerUp+0x10>
   40127e:	bd08      	pop	{r3, pc}
+		nRF24_writeRegister(NRF_CONFIG, config | (1<<PWR_UP));
   401280:	f040 0102 	orr.w	r1, r0, #2
   401284:	b2c9      	uxtb	r1, r1
   401286:	2000      	movs	r0, #0
   401288:	4b03      	ldr	r3, [pc, #12]	; (401298 <nRF24_powerUp+0x28>)
   40128a:	4798      	blx	r3
+		delay_ms(5);
   40128c:	4803      	ldr	r0, [pc, #12]	; (40129c <nRF24_powerUp+0x2c>)
   40128e:	4b04      	ldr	r3, [pc, #16]	; (4012a0 <nRF24_powerUp+0x30>)
   401290:	4798      	blx	r3
+	}
+}
   401292:	e7f4      	b.n	40127e <nRF24_powerUp+0xe>
   401294:	00400eb5 	.word	0x00400eb5
   401298:	00400f31 	.word	0x00400f31
@@ -2346,10 +2526,25 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4012a0:	20400001 	.word	0x20400001
 
 004012a4 <nRF24_stopListening>:
+/**
+ * \brief use the nRF24 module as transmitter
+ *
+ */
+void nRF24_stopListening(void)
+{
   4012a4:	b538      	push	{r3, r4, r5, lr}
+	Pio *base = arch_ioport_pin_to_base(pin);
+
+	if (level) {
+		base->PIO_SODR = arch_ioport_pin_to_mask(pin);
+	} else {
+		base->PIO_CODR = arch_ioport_pin_to_mask(pin);
   4012a6:	f44f 7200 	mov.w	r2, #512	; 0x200
   4012aa:	4b21      	ldr	r3, [pc, #132]	; (401330 <nRF24_stopListening+0x8c>)
   4012ac:	635a      	str	r2, [r3, #52]	; 0x34
+	ioport_set_pin_level(CE, 0);
+	
+	delay_us(txDelay);
   4012ae:	4b21      	ldr	r3, [pc, #132]	; (401334 <nRF24_stopListening+0x90>)
   4012b0:	6819      	ldr	r1, [r3, #0]
   4012b2:	2900      	cmp	r1, #0
@@ -2366,11 +2561,14 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4012ca:	47a0      	blx	r4
   4012cc:	4b1e      	ldr	r3, [pc, #120]	; (401348 <nRF24_stopListening+0xa4>)
   4012ce:	4798      	blx	r3
+	if (nRF24_readRegister(FEATURE) & 1<<(EN_ACK_PAY))
   4012d0:	201d      	movs	r0, #29
   4012d2:	4b1e      	ldr	r3, [pc, #120]	; (40134c <nRF24_stopListening+0xa8>)
   4012d4:	4798      	blx	r3
   4012d6:	f010 0f02 	tst.w	r0, #2
   4012da:	d011      	beq.n	401300 <nRF24_stopListening+0x5c>
+	{
+		delay_us(txDelay);
   4012dc:	4b15      	ldr	r3, [pc, #84]	; (401334 <nRF24_stopListening+0x90>)
   4012de:	6819      	ldr	r1, [r3, #0]
   4012e0:	b311      	cbz	r1, 401328 <nRF24_stopListening+0x84>
@@ -2386,8 +2584,11 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4012f6:	47a0      	blx	r4
   4012f8:	4b13      	ldr	r3, [pc, #76]	; (401348 <nRF24_stopListening+0xa4>)
   4012fa:	4798      	blx	r3
+		nRF24_FlushTx();
   4012fc:	4b14      	ldr	r3, [pc, #80]	; (401350 <nRF24_stopListening+0xac>)
   4012fe:	4798      	blx	r3
+	}
+	nRF24_writeRegister(NRF_CONFIG, (nRF24_readRegister(NRF_CONFIG)) & ~(1<<PRIM_RX));
   401300:	2000      	movs	r0, #0
   401302:	4d12      	ldr	r5, [pc, #72]	; (40134c <nRF24_stopListening+0xa8>)
   401304:	47a8      	blx	r5
@@ -2395,6 +2596,7 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   40130a:	2000      	movs	r0, #0
   40130c:	4c11      	ldr	r4, [pc, #68]	; (401354 <nRF24_stopListening+0xb0>)
   40130e:	47a0      	blx	r4
+	nRF24_writeRegister(EN_RXADDR, nRF24_readRegister(EN_RXADDR) | (1<< pipe_enable_s[0])); 
   401310:	2002      	movs	r0, #2
   401312:	47a8      	blx	r5
   401314:	f040 0101 	orr.w	r1, r0, #1
@@ -2402,10 +2604,12 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   40131a:	2002      	movs	r0, #2
   40131c:	47a0      	blx	r4
   40131e:	bd38      	pop	{r3, r4, r5, pc}
+	delay_us(txDelay);
   401320:	2033      	movs	r0, #51	; 0x33
   401322:	4b09      	ldr	r3, [pc, #36]	; (401348 <nRF24_stopListening+0xa4>)
   401324:	4798      	blx	r3
   401326:	e7d3      	b.n	4012d0 <nRF24_stopListening+0x2c>
+		delay_us(txDelay);
   401328:	2033      	movs	r0, #51	; 0x33
   40132a:	4b07      	ldr	r3, [pc, #28]	; (401348 <nRF24_stopListening+0xa4>)
   40132c:	4798      	blx	r3
@@ -2422,52 +2626,89 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401354:	00400f31 	.word	0x00400f31
 
 00401358 <nRF24_begin>:
+ * address width: 32 bit / 4 bytes
+ * 
+ * \return 1 if nRF24 module reacts to data
+ */
+bool nRF24_begin(void)
+{
   401358:	b538      	push	{r3, r4, r5, lr}
+		base->PIO_OER = arch_ioport_pin_to_mask(pin);
   40135a:	4b1a      	ldr	r3, [pc, #104]	; (4013c4 <nRF24_begin+0x6c>)
   40135c:	f44f 7200 	mov.w	r2, #512	; 0x200
   401360:	611a      	str	r2, [r3, #16]
+	base->PIO_OWER = arch_ioport_pin_to_mask(pin);
   401362:	f8c3 20a0 	str.w	r2, [r3, #160]	; 0xa0
+		base->PIO_CODR = arch_ioport_pin_to_mask(pin);
   401366:	635a      	str	r2, [r3, #52]	; 0x34
+	uint8_t setup = 0;
+	ioport_set_pin_dir(CE, IOPORT_DIR_OUTPUT);//ce_pin PC9
+	ioport_set_pin_level(CE, 0);
+	
+	nRF24_writeRegister(NRF_CONFIG, 0x0C);
   401368:	210c      	movs	r1, #12
   40136a:	2000      	movs	r0, #0
   40136c:	4c16      	ldr	r4, [pc, #88]	; (4013c8 <nRF24_begin+0x70>)
   40136e:	47a0      	blx	r4
+	nRF24_writeRegister(SETUP_RETR, (delay & 0xF) << ARD | (count & 0xF) <<ARC );
   401370:	215f      	movs	r1, #95	; 0x5f
   401372:	2004      	movs	r0, #4
   401374:	47a0      	blx	r4
+	nRF24_setRetries(5, 15);
+	
+	nRF24_setDataRate(RF24_1MBPS);
   401376:	2000      	movs	r0, #0
   401378:	4b14      	ldr	r3, [pc, #80]	; (4013cc <nRF24_begin+0x74>)
   40137a:	4798      	blx	r3
+	nRF24_setCRCLength(RF24_CRC_16);
   40137c:	2002      	movs	r0, #2
   40137e:	4b14      	ldr	r3, [pc, #80]	; (4013d0 <nRF24_begin+0x78>)
   401380:	4798      	blx	r3
+	toggle_features();
   401382:	4b14      	ldr	r3, [pc, #80]	; (4013d4 <nRF24_begin+0x7c>)
   401384:	4798      	blx	r3
+	
+	//reset current status
+	nRF24_writeRegister(NRF_STATUS, (1<<RX_DR) | (1<<TX_DS) | (1<<MAX_RT));
   401386:	2170      	movs	r1, #112	; 0x70
   401388:	2007      	movs	r0, #7
   40138a:	47a0      	blx	r4
+	
+	nRF24_setChannel(76);
   40138c:	204c      	movs	r0, #76	; 0x4c
   40138e:	4b12      	ldr	r3, [pc, #72]	; (4013d8 <nRF24_begin+0x80>)
   401390:	4798      	blx	r3
+	nRF24_setAddressWidth(ADDR_4bytes);
   401392:	2004      	movs	r0, #4
   401394:	4b11      	ldr	r3, [pc, #68]	; (4013dc <nRF24_begin+0x84>)
   401396:	4798      	blx	r3
+	
+	nRF24_FlushRx();
   401398:	4b11      	ldr	r3, [pc, #68]	; (4013e0 <nRF24_begin+0x88>)
   40139a:	4798      	blx	r3
+	nRF24_FlushTx();
   40139c:	4b11      	ldr	r3, [pc, #68]	; (4013e4 <nRF24_begin+0x8c>)
   40139e:	4798      	blx	r3
+	
+	nRF24_powerUp();
   4013a0:	4b11      	ldr	r3, [pc, #68]	; (4013e8 <nRF24_begin+0x90>)
   4013a2:	4798      	blx	r3
+	
+	nRF24_writeRegister(NRF_CONFIG, (nRF24_readRegister(NRF_CONFIG)) & ~(1<<PRIM_RX));
   4013a4:	2000      	movs	r0, #0
   4013a6:	4d11      	ldr	r5, [pc, #68]	; (4013ec <nRF24_begin+0x94>)
   4013a8:	47a8      	blx	r5
   4013aa:	f000 01fe 	and.w	r1, r0, #254	; 0xfe
   4013ae:	2000      	movs	r0, #0
   4013b0:	47a0      	blx	r4
+	setup = nRF24_readRegister(RF_SETUP);
   4013b2:	2006      	movs	r0, #6
   4013b4:	47a8      	blx	r5
+	
+	return (setup != 0 && setup != 0xFF);
   4013b6:	3801      	subs	r0, #1
   4013b8:	b2c0      	uxtb	r0, r0
+}
   4013ba:	28fd      	cmp	r0, #253	; 0xfd
   4013bc:	bf8c      	ite	hi
   4013be:	2000      	movhi	r0, #0
@@ -2486,25 +2727,36 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   4013ec:	00400eb5 	.word	0x00400eb5
 
 004013f0 <nRF24_openWritingPipe>:
+ * 
+ * \param address address of the receiving module
+ *
+ */
+void nRF24_openWritingPipe(uint64_t address)
+{
   4013f0:	b570      	push	{r4, r5, r6, lr}
   4013f2:	b082      	sub	sp, #8
   4013f4:	ac02      	add	r4, sp, #8
   4013f6:	e964 0102 	strd	r0, r1, [r4, #-8]!
+	writeRegister(RX_ADDR_P0, (uint8_t *)(&address), addr_width);
   4013fa:	4e08      	ldr	r6, [pc, #32]	; (40141c <nRF24_openWritingPipe+0x2c>)
   4013fc:	7832      	ldrb	r2, [r6, #0]
   4013fe:	4621      	mov	r1, r4
   401400:	200a      	movs	r0, #10
   401402:	4d07      	ldr	r5, [pc, #28]	; (401420 <nRF24_openWritingPipe+0x30>)
   401404:	47a8      	blx	r5
+	writeRegister(TX_ADDR, (uint8_t *)(&address), addr_width);
   401406:	7832      	ldrb	r2, [r6, #0]
   401408:	4621      	mov	r1, r4
   40140a:	2010      	movs	r0, #16
   40140c:	47a8      	blx	r5
+	
+	nRF24_writeRegister(RX_PW_P0, payload_size);
   40140e:	4b05      	ldr	r3, [pc, #20]	; (401424 <nRF24_openWritingPipe+0x34>)
   401410:	7819      	ldrb	r1, [r3, #0]
   401412:	2011      	movs	r0, #17
   401414:	4b04      	ldr	r3, [pc, #16]	; (401428 <nRF24_openWritingPipe+0x38>)
   401416:	4798      	blx	r3
+}
   401418:	b002      	add	sp, #8
   40141a:	bd70      	pop	{r4, r5, r6, pc}
   40141c:	204082dc 	.word	0x204082dc
@@ -2513,9 +2765,17 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   401428:	00400f31 	.word	0x00400f31
 
 0040142c <nRF24_write>:
+ * \param buf: pointer to the data buffer
+ * \param len: length of the payload to be written
+ *
+ */
+bool nRF24_write(const void* buf, uint8_t len)
+{
   40142c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
   40142e:	af00      	add	r7, sp, #0
+{
   401430:	466e      	mov	r6, sp
+	uint8_t blanklen = dynamic_payloads_enabled ? 0 : payload_size - data_len;
   401432:	4b24      	ldr	r3, [pc, #144]	; (4014c4 <nRF24_write+0x98>)
   401434:	781b      	ldrb	r3, [r3, #0]
   401436:	bb53      	cbnz	r3, 40148e <nRF24_write+0x62>
@@ -2523,57 +2783,77 @@ char compareArray(uint8_t a[],uint8_t b[],uint8_t size)
   40143a:	781b      	ldrb	r3, [r3, #0]
   40143c:	1a5b      	subs	r3, r3, r1
   40143e:	b2db      	uxtb	r3, r3
+	uint8_t size = data_len + blanklen + 1;
   401440:	3101      	adds	r1, #1
   401442:	4419      	add	r1, r3
   401444:	b2c9      	uxtb	r1, r1
+	uint8_t s_buff[size];
   401446:	1dcb      	adds	r3, r1, #7
   401448:	f023 0307 	bic.w	r3, r3, #7
   40144c:	ebad 0d03 	sub.w	sp, sp, r3
   401450:	46ee      	mov	lr, sp
+	s_buff[0] = writeType;
   401452:	23a0      	movs	r3, #160	; 0xa0
   401454:	f88d 3000 	strb.w	r3, [sp]
+	for (uint8_t i = 1; i< size; i++)
   401458:	2901      	cmp	r1, #1
   40145a:	d90b      	bls.n	401474 <nRF24_write+0x48>
   40145c:	1e43      	subs	r3, r0, #1
   40145e:	f10d 0201 	add.w	r2, sp, #1
   401462:	1e8d      	subs	r5, r1, #2
   401464:	fa50 f585 	uxtab	r5, r0, r5
+		s_buff[i] = current[i-1];
   401468:	f813 4f01 	ldrb.w	r4, [r3, #1]!
   40146c:	f802 4b01 	strb.w	r4, [r2], #1
+	for (uint8_t i = 1; i< size; i++)
   401470:	42ab      	cmp	r3, r5
   401472:	d1f9      	bne.n	401468 <nRF24_write+0x3c>
+	spi_master_transfer(s_buff, size);
   401474:	4670      	mov	r0, lr
   401476:	4b15      	ldr	r3, [pc, #84]	; (4014cc <nRF24_write+0xa0>)
   401478:	4798      	blx	r3
   40147a:	46b5      	mov	sp, r6
+		base->PIO_SODR = arch_ioport_pin_to_mask(pin);
   40147c:	f44f 7200 	mov.w	r2, #512	; 0x200
   401480:	4b13      	ldr	r3, [pc, #76]	; (4014d0 <nRF24_write+0xa4>)
   401482:	631a      	str	r2, [r3, #48]	; 0x30
+	while(!(nRF24_getStatus() & ((1<<TX_DS) | (1<<MAX_RT))))
   401484:	4c13      	ldr	r4, [pc, #76]	; (4014d4 <nRF24_write+0xa8>)
+		delay_us(100);
   401486:	f241 36c2 	movw	r6, #5058	; 0x13c2
   40148a:	4d13      	ldr	r5, [pc, #76]	; (4014d8 <nRF24_write+0xac>)
   40148c:	e003      	b.n	401496 <nRF24_write+0x6a>
+	uint8_t blanklen = dynamic_payloads_enabled ? 0 : payload_size - data_len;
   40148e:	2300      	movs	r3, #0
   401490:	e7d6      	b.n	401440 <nRF24_write+0x14>
+		delay_us(100);
   401492:	4630      	mov	r0, r6
   401494:	47a8      	blx	r5
+	while(!(nRF24_getStatus() & ((1<<TX_DS) | (1<<MAX_RT))))
   401496:	47a0      	blx	r4
   401498:	f010 0f30 	tst.w	r0, #48	; 0x30
   40149c:	d0f9      	beq.n	401492 <nRF24_write+0x66>
+		base->PIO_CODR = arch_ioport_pin_to_mask(pin);
   40149e:	f44f 7200 	mov.w	r2, #512	; 0x200
   4014a2:	4b0b      	ldr	r3, [pc, #44]	; (4014d0 <nRF24_write+0xa4>)
   4014a4:	635a      	str	r2, [r3, #52]	; 0x34
+	uint8_t status = nRF24_writeRegister(NRF_STATUS, (1<<RX_DR) | (1<<TX_DS) | (1<<MAX_RT));
   4014a6:	2170      	movs	r1, #112	; 0x70
   4014a8:	2007      	movs	r0, #7
   4014aa:	4b0c      	ldr	r3, [pc, #48]	; (4014dc <nRF24_write+0xb0>)
   4014ac:	4798      	blx	r3
+	if(status & (1<<MAX_RT)){
   4014ae:	f010 0f10 	tst.w	r0, #16
   4014b2:	d102      	bne.n	4014ba <nRF24_write+0x8e>
+	return 1;
   4014b4:	2001      	movs	r0, #1
+	return nRFwrite(buf, len, 0);
   4014b6:	46bd      	mov	sp, r7
   4014b8:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+		nRF24_FlushTx();
   4014ba:	4b09      	ldr	r3, [pc, #36]	; (4014e0 <nRF24_write+0xb4>)
   4014bc:	4798      	blx	r3
+		return 0;
   4014be:	2000      	movs	r0, #0
   4014c0:	e7f9      	b.n	4014b6 <nRF24_write+0x8a>
   4014c2:	bf00      	nop
@@ -5032,8 +5312,8 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
 	nRF24_begin();
   402792:	4b88      	ldr	r3, [pc, #544]	; (4029b4 <main+0x2d0>)
   402794:	4798      	blx	r3
-	nRF24_setPALevel(RF_PA_MIN);
-  402796:	2000      	movs	r0, #0
+	nRF24_setPALevel(RF_PA_HIGH);
+  402796:	2002      	movs	r0, #2
   402798:	4b87      	ldr	r3, [pc, #540]	; (4029b8 <main+0x2d4>)
   40279a:	4798      	blx	r3
 	nRF24_stopListening();
@@ -5094,7 +5374,7 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   4027e6:	3401      	adds	r4, #1
   4027e8:	3504      	adds	r5, #4
 	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes); i++)
-  4027ea:	2c07      	cmp	r4, #7
+  4027ea:	2c03      	cmp	r4, #3
   4027ec:	d0de      	beq.n	4027ac <main+0xc8>
 		dmxValue = artnet_data_buffer[i];
   4027ee:	f816 3b01 	ldrb.w	r3, [r6], #1
@@ -10424,8 +10704,8 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   405db4:	646f4e72 65525f65 312d3076 0d2d2d20     rNode_Rev0-1 --.
   405dc4:	202d2d0a 454d4153 582d3037 20444c50     .-- SAME70-XPLD 
   405dd4:	0a0d2d2d 43202d2d 69706d6f 3a64656c     --..-- Compiled:
-  405de4:	63654420 20313220 30323032 3a303220      Dec 21 2020 20:
-  405df4:	333a3933 2d2d2037 0000000d 4d202d2d     39:37 --....-- M
+  405de4:	72614d20 20332020 31323032 3a343120      Mar  3 2021 14:
+  405df4:	343a3334 2d2d2036 0000000d 4d202d2d     43:46 --....-- M
   405e04:	25204341 78253a78 3a78253a 253a7825     AC %x:%x:%x:%x:%
   405e14:	78253a78 00000d0a 49202d2d 25202050     x:%x....-- IP  %
   405e24:	64252e64 2e64252e 0d0a6425 00000000     d.%d.%d.%d......
@@ -10504,7 +10784,7 @@ Disassembly of section .relocate:
 2040000c:	7241 2d74 654e 0074                         Art-Net.
 
 20400014 <gs_uc_ip_address>:
-20400014:	1c02 02a0                                   ....
+20400014:	0202 0b02                                   ....
 
 20400018 <gs_uc_mac_address>:
 20400018:	0400 1c25 02a0                              ..%...
