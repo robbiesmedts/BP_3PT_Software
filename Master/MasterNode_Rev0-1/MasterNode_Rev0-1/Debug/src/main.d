@@ -173,11 +173,14 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/common/services/serial/sam_uart/uart_serial.h \
  ../src/ASF/sam/drivers/uart/uart.h ../src/ASF/sam/drivers/usart/usart.h \
  ../src/config/conf_uart_serial.h ../src/ASF/sam/drivers/twihs/twihs.h \
- ../src/ASF/sam/drivers/pio/pio_handler.h ../src/softLib/GMAC_Artnet.h \
+ ../src/ASF/sam/drivers/pio/pio_handler.h ../src/main.h \
+ ../src/softLib/GMAC_Artnet.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
  c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
- ../src/softLib/mini_ip.h ../src/config/conf_eth.h ../src/softLib/nRF24.h \
+ ../src/softLib/mini_ip.h ../src/config/conf_eth.h \
+ ../src/softLib/Art-Net/Art-Net.h ../src/softLib/Art-Net/RDM.h \
+ ../src/softLib/Art-Net/Art-NetOemCodes.h ../src/softLib/nRF24.h \
  ../src/softLib/nRF24L01.h ../src/softLib/nRF24L01.h \
  ../src/softLib/SAM_SPI.h
 
@@ -549,6 +552,8 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/sam/drivers/pio/pio_handler.h:
 
+../src/main.h:
+
 ../src/softLib/GMAC_Artnet.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h:
@@ -560,6 +565,12 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 ../src/softLib/mini_ip.h:
 
 ../src/config/conf_eth.h:
+
+../src/softLib/Art-Net/Art-Net.h:
+
+../src/softLib/Art-Net/RDM.h:
+
+../src/softLib/Art-Net/Art-NetOemCodes.h:
 
 ../src/softLib/nRF24.h:
 

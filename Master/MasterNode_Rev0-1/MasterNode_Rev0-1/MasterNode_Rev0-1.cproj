@@ -682,6 +682,9 @@
     <Compile Include="src\ASF\sam\drivers\usart\usart.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\main.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\softLib\Art-Net\Art-Net.h">
       <SubType>compile</SubType>
     </Compile>
