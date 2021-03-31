@@ -256,6 +256,9 @@ int main (void)
 
 	puts(STRING_HEADER);
 	
+	fill_ArtNode(&ArtNode);
+	Fill_ArtPollReply();	
+
 	if (!init_gmac_ethernet())
 	{
 		return -1;
@@ -305,66 +308,65 @@ int main (void)
 void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
 	uint8_t controle[8];
+	uint8_t packetBuffer[GMAC_FRAME_LENTGH_MAX];
 	uint16_t eth_pkt_format = SWAP16(p_eth->et_protlen);
 	uint32_t hdr_len = ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE;
 	
-	if(eth_pkt_format == ETH_PROT_IP)
-	{
+	if(eth_pkt_format == ETH_PROT_IP){
 		p_ip_header_t p_ip = (p_ip_header_t) (p_uc_data+ ETH_HEADER_SIZE);
-		if (p_ip->ip_p == IP_PROT_UDP)
-		{
+		if (p_ip->ip_p == IP_PROT_UDP){
 			/*Check on added Art-Net header*/
-			if (ul_size > hdr_len)
-			{
+			if (ul_size > hdr_len){
 				PacketType = (T_ArtPacketType) get_packet_type(p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE); 
-				if(PacketType == 0)  // bad packet
-				{
+				if(PacketType == 0){  // bad packet
 					return;
-				}
+				}	
 				//printf("Art-Net compatible\r");
-/************************************************************************/
-/* Hier was ik aan het werk                                             */
-/* data buffer moet nog gedefinieerd worden								*:
-/* data buffer mag alleen maar ArtNet bevatten							*/
-/* ArtPollReply moet nog gevuld worden									*/
-/************************************************************************/
-				if(PacketType == ARTNET_DMX)
-				{
-					if(sizeof(packetBuffer) < sizeof(artnet_dmx_t)) 
+				packetBuffer = (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+				if(PacketType == ARTNET_DMX){
+					if(sizeof(packetBuffer) < sizeof(T_ArtDmx)){ 
 						return;
-					else
-						handle_dmx((artnet_dmx_t *)&packetBuffer);
-					}   
-				else if(PacketType == ARTNET_POLL)
-				{
-					if(sizeof(packetBuffer) < sizeof(artnet_poll_t)) 
+					}
+					else{
+						handle_dmx((T_ArtDmx *)&packetBuffer);
+					}
+				}
+				else if(PacketType == ARTNET_POLL){
+					if(sizeof(packetBuffer) < sizeof(T_ArtPoll)){ 
 						return;
-					else
-						handle_poll((artnet_poll_t *)&packetBuffer);
-				} /*
-				else if(packet_type == ARTNET_IPPROG)
+					}
+					else{
+						
+						handle_poll((T_ArtPoll *)&packetBuffer, p_uc_data);
+					}
+				} 
+/*				else if(packet_type == ARTNET_IPPROG)
 				{
 					if(sizeof(packetBuffer) < sizeof(artnet_ipprog_t))
 						return;
 					else
 						handle_ipprog((artnet_ipprog_t *)&packetBuffer);
 				} */
-				else if(PacketType == ARTNET_ADDRESS)
-				{
-					if(sizeof(packetBuffer) < sizeof(artnet_address_t))
+				else if(PacketType == ARTNET_ADDRESS){
+					if(sizeof(packetBuffer) < sizeof(T_ArtAddress)){
 						return;
-					else
-						handle_address((artnet_address_t *)&packetBuffer);
+					}
+					else{
+						handle_address((T_ArtAddress *)&packetBuffer);
+					}
 				}
 			}
 		}
 	}
-	else return;	
+	else{ 
+		return;	
+	}
 }
 
-void fill_art_node(T_ArtNode *node)
+void fill_ArtNode(T_ArtNode *node)
 {
-/*	//fill to 0's
+	
+	//fill to 0's
 	memset (node, 0, sizeof(node));
 	
 	//fill data
@@ -375,8 +377,8 @@ void fill_art_node(T_ArtNode *node)
 	memcpy (node->subnetMask, factory_subnetMask, 4);     // network mask (art-net use 'A' network type)
 	
 	sprintf((char *)node->id, "Art-Net\0"); // *** don't change never ***
-	sprintf((char *)node->shortname, "deskontrol node\0");
-	sprintf((char *)node->longname, "Art-net Node v0.2 (c) 2013 Toni Merino - www.deskontrol.net\0");
+	sprintf((char *)node->shortname, "Control node\0");
+	sprintf((char *)node->longname, "Interactive System Master Control Node (c) Robbie Smedts\0");
 	
 	memset (node->porttypes,  0x80, 4);
 	memset (node->goodinput,  0x08, 4);
@@ -399,27 +401,14 @@ void fill_art_node(T_ArtNode *node)
 	node->swin       [2] = 0x02;
 	node->swin       [3] = 0x03;
 	
-	#if defined(USE_UNIVERSE_0)
+
 	node->goodoutput [0] = 0x80;
-	#endif
 
-	#if defined(USE_UNIVERSE_1)
-	node->goodoutput [1] = 0x80;
-	#endif
-
-	#if defined(USE_UNIVERSE_2)
-	node->goodoutput [2] = 0x80;
-	#endif
-
-	#if defined(USE_UNIVERSE_3)
-	node->goodoutput [3] = 0x80;
-	#endif
-
-	node->etsaman[0] = 0;        // The ESTA manufacturer code.
-	node->etsaman[1] = 0;        // The ESTA manufacturer code.
+	node->etsamanH = "S";        // The ESTA manufacturer code.
+	node->etsamanL = "R";        // The ESTA manufacturer code.
 	node->localPort  = 0x1936;   // artnet UDP port is by default 6454 (0x1936)
 	node->verH       = 0;        // high byte of Node firmware revision number.
-	node->ver        = 2;        // low byte of Node firmware revision number.
+	node->ver        = 1;        // low byte of Node firmware revision number.
 	node->ProVerH    = 0;        // high byte of the Art-Net protocol revision number.
 	node->ProVer     = 14;       // low byte of the Art-Net protocol revision number.
 	node->oemH       = 0;        // high byte of the oem value.
@@ -429,7 +418,70 @@ void fill_art_node(T_ArtNode *node)
 	node->swvideo    = 0;
 	node->swmacro    = 0;
 	node->swremote   = 0;
-	node->style      = 0;        // StNode style - A DMX to/from Art-Net device*/
+	node->style      = 0;        // StNode style - A DMX to/from Art-Net device
+}
+
+void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
+{
+	//fill to 0's
+	memset (poll_reply, 0, sizeof(poll_reply));
+	
+	//copy data from node
+	memcpy (poll_reply->ID, node->id, sizeof(poll_reply->ID));
+	memcpy (poll_reply->BoxAddr->IP, node->localIp, sizeof(poll_reply->BoxAddr->IP));
+	memcpy (poll_reply->Mac, node->mac, sizeof(poll_reply->Mac));
+	memcpy (poll_reply->ShortName, node->shortname, sizeof(poll_reply->ShortName));
+	memcpy (poll_reply->LongName, node->longname, sizeof(poll_reply->LongName));
+	memcpy (poll_reply->NodeReport, node->nodereport, sizeof(poll_reply->NodeReport));
+	memcpy (poll_reply->PortTypes, node->porttypes, sizeof(poll_reply->PortTypes));
+	memcpy (poll_reply->GoodInput, node->goodinput, sizeof(poll_reply->GoodInput));
+	memcpy (poll_reply->GoodOutputA, node->goodoutput, sizeof(poll_reply->GoodOutputA));
+	memcpy (poll_reply->SwIn, node->swin, sizeof(poll_reply->SwIn));
+	memcpy (poll_reply->SwOut, node->swout, sizeof(poll_reply->SwOut));
+	memcpy (poll_reply->EstaManHi, node->etsamanH, sizeof(poll_reply->EstaManHi));
+	memcpy (poll_reply->EstaManLo, node->etsamanL, sizeof(poll_reply->EstaManLo));
+	
+	sprintf((char *)poll_reply->NodeReport, "%i nRF output universe active.\0", node->numbports);
+	
+	poll_reply->OpCode = 0x2100;  // ARTNET_REPLY
+	poll_reply->BoxAddr->Port = node->localPort;
+	poll_reply->VersionInfoHi = node->verH;
+	poll_reply->VersionInfoLo = node->ver;
+	poll_reply->NetSwitch = node->subH;
+	poll_reply->SubSwitch = node->sub;
+	poll_reply->OemHi = node->oemH;
+	poll_reply->OemLo = node->oem;
+	poll_reply->Status = node->status;
+	poll_reply->NumPortsHi = node->numbportsH;
+	poll_reply->NumPortsLo = node->numbports;
+	poll_reply->SwMacro         = node->swmacro;
+	poll_reply->SwRemote        = node->swremote;
+	poll_reply->Style           = node->style;
+} 
+
+uint8_t handle_dmx(T_ArtDmx *packet)
+{
+	if(packet->SubUni == ArtNode.swout[0])
+	{
+	  memcpy ((uint8_t *) artnet_data_buffer, (uint8_t *)packet->Data, MaxDataLength);
+	}
+}
+
+uint8_t handle_poll(T_ArtPoll *packet, uint8_t *p_uc_data)
+{
+	if((packet->Flags & 8) == 1) // controller say: send unicast reply
+	{
+		send_reply(UNICAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+	}
+	else // controller say: send broadcast reply
+	{
+		send_reply(BROADCAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
+	}
+}
+
+uint8_t handle_address(T_ArtAddress *packet, uint8_t *p_uc_data)
+{
+	send_reply(UNICAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
 }
 
 uint16_t get_packet_type(uint8_t *packet) //this get artnet packet type
@@ -439,6 +491,22 @@ uint16_t get_packet_type(uint8_t *packet) //this get artnet packet type
 		return BYTES_TO_SHORT(packet[9], packet[8]);
 	}
 	return 0;  // bad packet
+}
+
+void send_reply(uint8_t mode_broadcast, uint8_t *packet, uint16_t size)
+{
+	uint8_t ul_rc = GMAC_OK;
+	
+	if(mode_broadcast == 1) // send broadcast packet
+	{
+		ul_rc = gmac_dev_write(&gs_gmac_dev, p_uc_data, ul_size, NULL);
+		Udp.sendPacket(packet, size, ArtNode.broadcastIp, ArtNode.remotePort);
+	}
+	else // send unicast packet to controller
+	{
+		Udp.sendPacket(packet, size, ArtNode.remoteIp, ArtNode.remotePort);
+	}
+	if (ul_rc != GMAC_OK)
 }
 
 /// @cond 0

@@ -66,15 +66,15 @@ extern "C" {
 
 /** The IP address being used. */
 #define ETHERNET_CONF_IPADDR0                         2
-#define ETHERNET_CONF_IPADDR1                         2
-#define ETHERNET_CONF_IPADDR2                         2
-#define ETHERNET_CONF_IPADDR3                         11
+#define ETHERNET_CONF_IPADDR1                         0
+#define ETHERNET_CONF_IPADDR2                         0
+#define ETHERNET_CONF_IPADDR3                         10
 
 /** The gateway address being used. */
 #define ETHERNET_CONF_GATEWAY_ADDR0                   2
-#define ETHERNET_CONF_GATEWAY_ADDR1                   2
-#define ETHERNET_CONF_GATEWAY_ADDR2                   2
-#define ETHERNET_CONF_GATEWAY_ADDR3                   30
+#define ETHERNET_CONF_GATEWAY_ADDR1                   0
+#define ETHERNET_CONF_GATEWAY_ADDR2                   0
+#define ETHERNET_CONF_GATEWAY_ADDR3                   1
 
 /** The network mask being used. */
 #define ETHERNET_CONF_NET_MASK0                       255
