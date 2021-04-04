@@ -1,0 +1,4 @@
+[0403/131847:WARNING:dns_config_service_win.cc(674)] Failed to read DnsConfig.
+[0403/185913:WARNING:raw_channel_win.cc(532)] WriteFile: De pipes wordt gesloten. (0xE8)
+[0403/185913:ERROR:ipc_channel_win.cc(512)] pipe error: 232
+[0403/185913:WARNING:channel.cc(359)] RawChannel write error

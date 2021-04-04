@@ -16,6 +16,11 @@
 #include "softLib/nRF24.h"
 #include "softLib/nRF24L01.h"
 #include "softLib/SAM_SPI.h"
+#include "opt.h"
+#include "debug.h"
+#include "stats.h"
+#include "udp.h"
+
 
 #ifdef _DEBUG_
 #define STRING_EOL    "\r"
@@ -49,6 +54,8 @@ uint8_t handle_dmx(T_ArtDmx *packet);
 uint8_t handle_poll(T_ArtPoll *packet, uint8_t *p_uc_data);
 void send_reply(uint8_t mode_broadcast, uint8_t *packet, uint16_t size);
 uint8_t handle_address(T_ArtAddress *packet);
+
+void udpecho_raw_init(void);
 
 /************************************************************************/
 /* Structures                                                           */
@@ -117,6 +124,7 @@ typedef enum artnet_packet_type_e {
 	ARTNET_MEDIACONTROLREPLY = 0x9300
 } T_ArtPacketType;
 
+struct udp_pcb *udpecho_raw_pcb;
 /************************************************************************/
 /* Global variables                                                     */
 /************************************************************************/
