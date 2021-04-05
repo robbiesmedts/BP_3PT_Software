@@ -172,6 +172,7 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/ASF/common/services/serial/serial.h \
  ../src/ASF/common/services/serial/sam_uart/uart_serial.h \
  ../src/ASF/sam/drivers/uart/uart.h ../src/ASF/sam/drivers/usart/usart.h \
+<<<<<<< HEAD:Master/MasterNode_Rev2/MasterNode_Rev2/Debug/src/main.d
  ../src/config/conf_uart_serial.h \
  ../src/ASF/sam/drivers/pio/pio_handler.h ../src/main.h \
  ../src/softLib/GMAC_Artnet.h \
@@ -181,6 +182,14 @@ src/main.d src/main.o: ../src/main.c ../src/asf.h \
  ../src/softLib/mini_ip.h ../src/config/conf_eth.h \
  ../src/softLib/ArtNet/Art-Net.h ../src/softLib/ArtNet/RDM.h \
  ../src/softLib/ArtNet/Art-NetOemCodes.h ../src/softLib/nRF24.h \
+=======
+ ../src/config/conf_uart_serial.h ../src/ASF/sam/drivers/twihs/twihs.h \
+ ../src/ASF/sam/drivers/pio/pio_handler.h ../src/softLib/GMAC_Artnet.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\xlocale.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\sys\string.h \
+ ../src/softLib/mini_ip.h ../src/config/conf_eth.h ../src/softLib/nRF24.h \
+>>>>>>> parent of 3142a92 (PROGRESS):Master/MasterNode_Rev0-1/MasterNode_Rev0-1/Debug/src/main.d
  ../src/softLib/nRF24L01.h ../src/softLib/nRF24L01.h \
  ../src/softLib/SAM_SPI.h
 
@@ -548,8 +557,6 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/ASF/sam/drivers/pio/pio_handler.h:
 
-../src/main.h:
-
 ../src/softLib/GMAC_Artnet.h:
 
 c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-none-eabi\include\string.h:
@@ -562,12 +569,15 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\arm\arm-gnu-toolchain\arm-no
 
 ../src/config/conf_eth.h:
 
+<<<<<<< HEAD:Master/MasterNode_Rev2/MasterNode_Rev2/Debug/src/main.d
 ../src/softLib/ArtNet/Art-Net.h:
 
 ../src/softLib/ArtNet/RDM.h:
 
 ../src/softLib/ArtNet/Art-NetOemCodes.h:
 
+=======
+>>>>>>> parent of 3142a92 (PROGRESS):Master/MasterNode_Rev0-1/MasterNode_Rev0-1/Debug/src/main.d
 ../src/softLib/nRF24.h:
 
 ../src/softLib/nRF24L01.h:

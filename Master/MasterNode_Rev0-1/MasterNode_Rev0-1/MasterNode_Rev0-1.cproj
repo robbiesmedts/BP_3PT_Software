@@ -827,10 +827,14 @@
     <Compile Include="src\ASF\sam\drivers\usart\usart.c">
       <SubType>compile</SubType>
     </Compile>
+<<<<<<< HEAD
     <Compile Include="src\ASF\thirdparty\LwIP\contrib\addons\ipv6_static_routing\ip6_route_table.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\LwIP\contrib\addons\ipv6_static_routing\ip6_route_table.h">
+=======
+    <Compile Include="src\softLib\Art-Net\Art-Net.h">
+>>>>>>> parent of 3142a92 (PROGRESS)
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\LwIP\contrib\addons\netconn\external_resolve\dnssd.c">

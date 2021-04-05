@@ -4,8 +4,14 @@
  * \brief Empty user application template
  *
  */
+
+#define _DEBUG_
+
 #include <asf.h>
-#include <main.h>
+#include "softLib/GMAC_Artnet.h"
+#include "softLib/nRF24.h"
+#include "softLib/nRF24L01.h"
+#include "softLib/SAM_SPI.h"
 
 
 /// @cond 0
@@ -16,6 +22,46 @@ extern "C" {
 /**INDENT-ON**/
 /// @endcond
 
+#ifdef _DEBUG_
+#define STRING_EOL    "\r"
+#define STRING_HEADER "-- MasterNode_Rev0-1 --\r\n" \
+"-- "BOARD_NAME" --\r\n" \
+"-- Compiled: "__DATE__" "__TIME__" --"STRING_EOL
+#endif
+
+/************************************************************************/
+/* Function prototypes                                                  */
+/************************************************************************/
+
+long map(long x, long in_min, long in_max, long out_min, long out_max);
+
+/************************************************************************/
+/* Global variables                                                     */
+/************************************************************************/
+
+/* Data standard.
+   data communicated in this project follows the next structure to form an uniform protocol.
+   destAddr     //address (32bits) given by the command this is an receiving address or an destination address
+   dataValue    //variable (16bits) to save incoming and outgoing data
+   command      //commando (8bits) structured by command table
+
+   command table
+   0 = Stop command
+   1 = use sensor for own actuator
+   2 = send sensor value to other actuator
+   3 = receive sensor value for own actuator
+   4 = reset node
+*/
+struct dataStruct{
+	uint32_t destAddr;
+	uint16_t datavalue;
+	uint8_t command;
+}dataIn, dataOut;
+
+static const uint32_t listeningPipes[6] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL, 0x3A3A3A0A}; //unieke adressen gebruikt door de nodes.
+static uint16_t artnetDmxAddress = 1;
+
+static const uint8_t nodes = 1; //number of sensor nodes
 
 #ifdef _DEBUG_
 /**
@@ -49,7 +95,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 }
 
 /************************************************************************/
-/*
+/**
  *	\brief Send commands in function of the received Art-Net data
  *
  * Art-Net functionality			                                    
@@ -84,7 +130,7 @@ static void artnetToCommand(void)
 	uint8_t currentNode = 1;
 
 	//array start at 0 so the dmx address must be lowered by 1 because Art-Net sends DMX data without zero byte
-	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes - 1); i++)
+	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes); i++)
 	{
 		dmxValue = artnet_data_buffer[i];
 /************************************************************************/
@@ -114,9 +160,9 @@ static void artnetToCommand(void)
 /************************************************************************/
 /* Send sensor to other node                                            */
 /************************************************************************/
-/*			else if(dmxValue >= 21 && dmxValue <= 30)
+			else if(dmxValue >= 21 && dmxValue <= 30)
 			{
-				//Sensor to Node n
+				/*Sensor to Node n*/
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 1)
@@ -134,7 +180,7 @@ static void artnetToCommand(void)
 			}
 			else if(dmxValue >= 31 && dmxValue <= 40)
 			{
-				//Sensor to Node n+1
+				/*Sensor to Node n+1*/
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 1 || currentNode == 2)
@@ -153,7 +199,7 @@ static void artnetToCommand(void)
 			
 			else if(dmxValue >= 41 && dmxValue <= 50)
 			{
-				//Sensor to Node n+2
+				/*Sensor to Node n+2*/
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 4 || currentNode == 5)
@@ -187,7 +233,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Send data from node %d to other node\r\n", currentNode);
 #endif
-			}*/
+			}
 /*			else if(61 < dmxValue < 80)
 			{
 				//voor extra nodes
@@ -196,7 +242,7 @@ static void artnetToCommand(void)
 			{
 				//send nothing to the node to avoid command collisions with the sensor data
 			}*/
-/*			else if (dmxValue >= 91 && dmxValue <= 100)
+			else if (dmxValue >= 91 && dmxValue <= 100)
 			{
 				//send sensorData to Midi node for feedback to audio, light or video
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -206,7 +252,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Send data from node %d to Midi node\r\n", currentNode);
 #endif				
-			}*/
+			}
 /************************************************************************/
 /* Use DMX value                                                        */
 /************************************************************************/
@@ -228,7 +274,7 @@ static void artnetToCommand(void)
 /************************************************************************/
 /* Reset Node		                                                    */
 /************************************************************************/
-/*			else if(dmxValue >= 231 && dmxValue <= 255)
+			else if(dmxValue >= 231 && dmxValue <= 255)
 			{
 				//reset Node
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -237,7 +283,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Reset node %d\r\n", currentNode);
 #endif
-			}//end if structure*/
+			}//end if structure
 		//printf("current node: %d\n\r", currentNode);	
 		currentNode++;
 	}//end for-loop
@@ -261,7 +307,7 @@ int main (void)
 
 	if (!init_gmac_ethernet())
 	{
-		return -1;
+			return -1;
 	}
 	
 #ifdef _DEBUG_
@@ -288,17 +334,19 @@ int main (void)
 	while(1)
 	{
 		// Process packets
-		if (GMAC_OK == read_dev_gmac()) {
-			if (ul_frm_size_rx > 0) {
-				// Handle input frame
-				//gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
-				handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
-				artnetToCommand();
-			}//end of process
+		if (GMAC_OK != read_dev_gmac()) {
+			continue; // return to while(1){}
 		}
+
+		if (ul_frm_size_rx > 0) {
+			// Handle input frame
+			gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
+			artnetToCommand();
+		}//end of process
 	}//end of loop
 }//end of program
 
+<<<<<<< HEAD
 /*
 	- Check if UDP-
 	- Check if ArtNet
@@ -538,6 +586,8 @@ static void udpecho_raw_recv(void *arg, struct udp_pcb *upcb, struct pbuf *p, co
 	}
 }
 #endif
+=======
+>>>>>>> parent of 3142a92 (PROGRESS)
 /// @cond 0
 /**INDENT-OFF**/
 #ifdef __cplusplus

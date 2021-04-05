@@ -252,7 +252,7 @@ static void gmac_process_artnet_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		{
 			//Length is send LSB first an received byte swapped, for the correct length we have to re-swap it
 			memcpy(artnet_data_buffer, p_artDmx_packet->Data, SWAP16(p_artDmx_packet->Length)); //mempcy(dst, src, arraylength);
-			puts("DMX saved\r");
+			//puts("DMX saved\r");
 			//display_ArtDmx_packet(p_artDmx_packet);
 		}
 		
@@ -315,7 +315,7 @@ void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size)
 	if (us_pkt_format == ETH_PROT_IP)
 	{
 		/* Backup the header */
-		//memcpy(&ip_header, p_ip_header, sizeof(ip_header_t)); //memcpy(dest, src, size)
+		memcpy(&ip_header, p_ip_header, sizeof(ip_header_t));
 
 		/* Process the IP packet */
 		gmac_process_ip_packet(p_uc_data, ul_size);
