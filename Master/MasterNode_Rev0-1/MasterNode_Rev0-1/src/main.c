@@ -347,6 +347,7 @@ int main (void)
 }//end of program
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /*
 	- Check if UDP-
 	- Check if ArtNet
@@ -586,6 +587,8 @@ static void udpecho_raw_recv(void *arg, struct udp_pcb *upcb, struct pbuf *p, co
 	}
 }
 #endif
+=======
+>>>>>>> parent of 3142a92 (PROGRESS)
 =======
 >>>>>>> parent of 3142a92 (PROGRESS)
 /// @cond 0

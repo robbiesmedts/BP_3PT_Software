@@ -828,11 +828,14 @@
       <SubType>compile</SubType>
     </Compile>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <Compile Include="src\ASF\thirdparty\LwIP\contrib\addons\ipv6_static_routing\ip6_route_table.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\LwIP\contrib\addons\ipv6_static_routing\ip6_route_table.h">
 =======
+=======
+>>>>>>> parent of 3142a92 (PROGRESS)
     <Compile Include="src\softLib\Art-Net\Art-Net.h">
 >>>>>>> parent of 3142a92 (PROGRESS)
       <SubType>compile</SubType>
