@@ -59,6 +59,19 @@ gmac_options_t gmac_option;
 T_Addr p_artAddr;
 T_ArtPollReply p_artPollReply_packet;
 
+static uint16_t gmac_icmp_checksum(uint16_t *p_buff, uint32_t ul_len)
+{
+	uint32_t i, ul_tmp;
+
+	for (i = 0, ul_tmp = 0; i < ul_len; i++, p_buff++) {
+
+		ul_tmp += SWAP16(*p_buff);
+	}
+	ul_tmp = (ul_tmp & 0xffff) + (ul_tmp >> 16);
+
+	return (uint16_t) (~ul_tmp);
+}
+
 bool init_gmac_ethernet(void)
 {
 	#ifdef ETH_SUPPORT_AT24MAC
@@ -115,6 +128,104 @@ bool init_gmac_ethernet(void)
 	return 1;
 }
 
+void gmac_process_arp_packet(uint8_t *p_uc_data, uint32_t ul_size)
+{
+	uint32_t i;
+	uint8_t ul_rc = GMAC_OK;
+
+	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
+	p_arp_header_t p_arp = (p_arp_header_t) (p_uc_data + ETH_HEADER_SIZE);
+
+	if (SWAP16(p_arp->ar_op) == ARP_REQUEST) {
+		printf("-- MAC %x:%x:%x:%x:%x:%x\n\r",
+		p_eth->et_dest[0], p_eth->et_dest[1],
+		p_eth->et_dest[2], p_eth->et_dest[3],
+		p_eth->et_dest[4], p_eth->et_dest[5]);
+
+		printf("-- MAC %x:%x:%x:%x:%x:%x\n\r",
+		p_eth->et_src[0], p_eth->et_src[1],
+		p_eth->et_src[2], p_eth->et_src[3],
+		p_eth->et_src[4], p_eth->et_src[5]);
+
+		/* ARP reply operation */
+		p_arp->ar_op = SWAP16(ARP_REPLY);
+
+		/* Fill the destination address and source address */
+		for (i = 0; i < 6; i++) {
+			/* Swap ethernet destination address and ethernet source address */
+			p_eth->et_dest[i] = p_eth->et_src[i];
+			p_eth->et_src[i] = gs_uc_mac_address[i];
+			p_arp->ar_tha[i] = p_arp->ar_sha[i];
+			p_arp->ar_sha[i] = gs_uc_mac_address[i];
+		}
+		/* Swap the source IP address and the destination IP address */
+		for (i = 0; i < 4; i++) {
+			p_arp->ar_tpa[i] = p_arp->ar_spa[i];
+			p_arp->ar_spa[i] = gs_uc_ip_address[i];
+		}
+
+		ul_rc = gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, p_uc_data, ul_size, NULL);
+
+		if (ul_rc != GMAC_OK) {
+			printf("E: ARP Send - 0x%x\n\r", ul_rc);
+		}
+	}
+}
+
+void gmac_process_ICMP_packet(uint8_t *p_uc_data, uint32_t ul_size)
+{
+	uint32_t i;
+	uint32_t ul_icmp_len;
+	int32_t ul_rc = GMAC_OK;
+
+	/* avoid Cppcheck Warning */
+	UNUSED(ul_size);
+
+	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
+	p_ip_header_t p_ip_header = (p_ip_header_t) (p_uc_data + ETH_HEADER_SIZE);
+
+	p_icmp_echo_header_t p_icmp_echo = (p_icmp_echo_header_t) ((int8_t *) p_ip_header + ETH_IP_HEADER_SIZE);
+		
+	if (p_icmp_echo->type == ICMP_ECHO_REQUEST) {
+		p_icmp_echo->type = ICMP_ECHO_REPLY;
+		p_icmp_echo->code = 0;
+		p_icmp_echo->cksum = 0;
+
+		/* Checksum of the ICMP message */
+		ul_icmp_len = (SWAP16(p_ip_header->ip_len) - ETH_IP_HEADER_SIZE);
+		if (ul_icmp_len % 2) {
+			*((uint8_t *) p_icmp_echo + ul_icmp_len) = 0;
+			ul_icmp_len++;
+		}
+		ul_icmp_len = ul_icmp_len / sizeof(uint16_t);
+
+		p_icmp_echo->cksum = SWAP16(
+		gmac_icmp_checksum((uint16_t *)p_icmp_echo, ul_icmp_len));
+		/* Swap the IP destination  address and the IP source address */
+		for (i = 0; i < 4; i++) {
+			p_ip_header->ip_dst[i] =
+			p_ip_header->ip_src[i];
+			p_ip_header->ip_src[i] = gs_uc_ip_address[i];
+		}
+		/* Swap ethernet destination address and ethernet source address */
+		for (i = 0; i < 6; i++) {
+			/* Swap ethernet destination address and ethernet source address */
+			p_eth->et_dest[i] = p_eth->et_src[i];
+			p_eth->et_src[i] = gs_uc_mac_address[i];
+		}
+		/* Send the echo_reply */
+		#if (SAM4E)
+		ul_rc = gmac_dev_write(&gs_gmac_dev, p_uc_data,
+		SWAP16(p_ip_header->ip_len) + 14, NULL);
+		#else
+		ul_rc = gmac_dev_write(&gs_gmac_dev, GMAC_QUE_0, p_uc_data,
+		SWAP16(p_ip_header->ip_len) + 14, NULL);
+		#endif
+		if (ul_rc != GMAC_OK) {
+			printf("E: ICMP Send - 0x%x\n\r", ul_rc);
+		}
+	}
+}
 /**
  * Function is from the example project and not further of service in this project
  * \brief Display the IP packet.

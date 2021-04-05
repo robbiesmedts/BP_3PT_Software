@@ -24,8 +24,7 @@ static void spi_set_clock_configuration(uint8_t configuration)
 	NVIC_SetPriority(SPI_IRQn, 0);
 	NVIC_EnableIRQ(SPI_IRQn);
 
-	printf("Setting SPI clock #%lu ... \n\r", (unsigned long)gs_ul_spi_clock);
-	//spi_master_initialize();
+	printf("Setting SPI clock %lu Hz\n\r", (unsigned long)gs_ul_spi_clock);
 }
 
 /**

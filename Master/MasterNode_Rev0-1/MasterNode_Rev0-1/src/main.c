@@ -4,14 +4,8 @@
  * \brief Empty user application template
  *
  */
-
-#define _DEBUG_
-
 #include <asf.h>
-#include "softLib/GMAC_Artnet.h"
-#include "softLib/nRF24.h"
-#include "softLib/nRF24L01.h"
-#include "softLib/SAM_SPI.h"
+#include <main.h>
 
 
 /// @cond 0
@@ -22,46 +16,6 @@ extern "C" {
 /**INDENT-ON**/
 /// @endcond
 
-#ifdef _DEBUG_
-#define STRING_EOL    "\r"
-#define STRING_HEADER "-- MasterNode_Rev0-1 --\r\n" \
-"-- "BOARD_NAME" --\r\n" \
-"-- Compiled: "__DATE__" "__TIME__" --"STRING_EOL
-#endif
-
-/************************************************************************/
-/* Function prototypes                                                  */
-/************************************************************************/
-
-long map(long x, long in_min, long in_max, long out_min, long out_max);
-
-/************************************************************************/
-/* Global variables                                                     */
-/************************************************************************/
-
-/* Data standard.
-   data communicated in this project follows the next structure to form an uniform protocol.
-   destAddr     //address (32bits) given by the command this is an receiving address or an destination address
-   dataValue    //variable (16bits) to save incoming and outgoing data
-   command      //commando (8bits) structured by command table
-
-   command table
-   0 = Stop command
-   1 = use sensor for own actuator
-   2 = send sensor value to other actuator
-   3 = receive sensor value for own actuator
-   4 = reset node
-*/
-struct dataStruct{
-	uint32_t destAddr;
-	uint16_t datavalue;
-	uint8_t command;
-}dataIn, dataOut;
-
-static const uint32_t listeningPipes[6] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL, 0x3A3A3A0A}; //unieke adressen gebruikt door de nodes.
-static uint16_t artnetDmxAddress = 1;
-
-static const uint8_t nodes = 1; //number of sensor nodes
 
 #ifdef _DEBUG_
 /**
@@ -95,7 +49,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 }
 
 /************************************************************************/
-/**
+/*
  *	\brief Send commands in function of the received Art-Net data
  *
  * Art-Net functionality			                                    
@@ -130,7 +84,7 @@ static void artnetToCommand(void)
 	uint8_t currentNode = 1;
 
 	//array start at 0 so the dmx address must be lowered by 1 because Art-Net sends DMX data without zero byte
-	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes); i++)
+	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes - 1); i++)
 	{
 		dmxValue = artnet_data_buffer[i];
 /************************************************************************/
@@ -160,9 +114,9 @@ static void artnetToCommand(void)
 /************************************************************************/
 /* Send sensor to other node                                            */
 /************************************************************************/
-			else if(dmxValue >= 21 && dmxValue <= 30)
+/*			else if(dmxValue >= 21 && dmxValue <= 30)
 			{
-				/*Sensor to Node n*/
+				//Sensor to Node n
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 1)
@@ -180,7 +134,7 @@ static void artnetToCommand(void)
 			}
 			else if(dmxValue >= 31 && dmxValue <= 40)
 			{
-				/*Sensor to Node n+1*/
+				//Sensor to Node n+1
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 1 || currentNode == 2)
@@ -199,7 +153,7 @@ static void artnetToCommand(void)
 			
 			else if(dmxValue >= 41 && dmxValue <= 50)
 			{
-				/*Sensor to Node n+2*/
+				//Sensor to Node n+2
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
 				dataOut.command = 2;
 				if (currentNode == 4 || currentNode == 5)
@@ -233,7 +187,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Send data from node %d to other node\r\n", currentNode);
 #endif
-			}
+			}*/
 /*			else if(61 < dmxValue < 80)
 			{
 				//voor extra nodes
@@ -242,7 +196,7 @@ static void artnetToCommand(void)
 			{
 				//send nothing to the node to avoid command collisions with the sensor data
 			}*/
-			else if (dmxValue >= 91 && dmxValue <= 100)
+/*			else if (dmxValue >= 91 && dmxValue <= 100)
 			{
 				//send sensorData to Midi node for feedback to audio, light or video
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -252,7 +206,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Send data from node %d to Midi node\r\n", currentNode);
 #endif				
-			}
+			}*/
 /************************************************************************/
 /* Use DMX value                                                        */
 /************************************************************************/
@@ -274,7 +228,7 @@ static void artnetToCommand(void)
 /************************************************************************/
 /* Reset Node		                                                    */
 /************************************************************************/
-			else if(dmxValue >= 231 && dmxValue <= 255)
+/*			else if(dmxValue >= 231 && dmxValue <= 255)
 			{
 				//reset Node
 				nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -283,7 +237,7 @@ static void artnetToCommand(void)
 #ifdef _DEBUG_
 				printf("Reset node %d\r\n", currentNode);
 #endif
-			}//end if structure
+			}//end if structure*/
 		//printf("current node: %d\n\r", currentNode);	
 		currentNode++;
 	}//end for-loop
@@ -302,12 +256,9 @@ int main (void)
 
 	puts(STRING_HEADER);
 	
-	fill_ArtNode(&ArtNode);
-	Fill_ArtPollReply();	
-
 	if (!init_gmac_ethernet())
 	{
-			return -1;
+		return -1;
 	}
 	
 #ifdef _DEBUG_
@@ -334,87 +285,80 @@ int main (void)
 	while(1)
 	{
 		// Process packets
-		if (GMAC_OK != read_dev_gmac()) {
-			continue; // return to while(1){}
+		if (GMAC_OK == read_dev_gmac()) {
+			if (ul_frm_size_rx > 0) {
+				// Handle input frame
+				gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
+				//handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
+				artnetToCommand();
+			}//end of process
 		}
-
-		if (ul_frm_size_rx > 0) {
-			// Handle input frame
-			gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
-			artnetToCommand();
-		}//end of process
 	}//end of loop
 }//end of program
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 /*
 	- Check if UDP-
 	- Check if ArtNet
 	- Check ArtNet packetType
 	- handle packetType
 */
-void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
+/*void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
 	uint8_t controle[8];
-	uint8_t packetBuffer[GMAC_FRAME_LENTGH_MAX];
 	uint16_t eth_pkt_format = SWAP16(p_eth->et_protlen);
 	uint32_t hdr_len = ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE;
 	
-	if(eth_pkt_format == ETH_PROT_IP){
+	if(eth_pkt_format == ETH_PROT_IP)
+	{
 		p_ip_header_t p_ip = (p_ip_header_t) (p_uc_data+ ETH_HEADER_SIZE);
-		if (p_ip->ip_p == IP_PROT_UDP){
-			/*Check on added Art-Net header*/
-			if (ul_size > hdr_len){
+		if (p_ip->ip_p == IP_PROT_UDP)
+		{
+			//Check on added Art-Net header
+			if (ul_size > hdr_len)
+			{
 				PacketType = (T_ArtPacketType) get_packet_type(p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE); 
-				if(PacketType == 0){  // bad packet
+				if(PacketType == 0)  // bad packet
+				{
 					return;
-				}	
-				//printf("Art-Net compatible\r");
-				packetBuffer = (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
-				if(PacketType == ARTNET_DMX){
-					if(sizeof(packetBuffer) < sizeof(T_ArtDmx)){ 
-						return;
-					}
-					else{
-						handle_dmx((T_ArtDmx *)&packetBuffer);
-					}
 				}
-				else if(PacketType == ARTNET_POLL){
-					if(sizeof(packetBuffer) < sizeof(T_ArtPoll)){ 
+				//printf("Art-Net compatible\r");
+
+				if(PacketType == ARTNET_DMX)
+				{
+					if(sizeof(packetBuffer) < sizeof(artnet_dmx_t)) 
 						return;
-					}
-					else{
-						
-						handle_poll((T_ArtPoll *)&packetBuffer, p_uc_data);
-					}
+					else
+						handle_dmx((artnet_dmx_t *)&packetBuffer);
+					}   
+				else if(PacketType == ARTNET_POLL)
+				{
+					if(sizeof(packetBuffer) < sizeof(artnet_poll_t)) 
+						return;
+					else
+						handle_poll((artnet_poll_t *)&packetBuffer);
 				} 
-/*				else if(packet_type == ARTNET_IPPROG)
+				else if(packet_type == ARTNET_IPPROG)
 				{
 					if(sizeof(packetBuffer) < sizeof(artnet_ipprog_t))
 						return;
 					else
 						handle_ipprog((artnet_ipprog_t *)&packetBuffer);
-				} */
-				else if(PacketType == ARTNET_ADDRESS){
-					if(sizeof(packetBuffer) < sizeof(T_ArtAddress)){
+				} 
+				else if(PacketType == ARTNET_ADDRESS)
+				{
+					if(sizeof(packetBuffer) < sizeof(artnet_address_t))
 						return;
-					}
-					else{
-						handle_address((T_ArtAddress *)&packetBuffer);
-					}
+					else
+						handle_address((artnet_address_t *)&packetBuffer);
 				}
 			}
 		}
 	}
-	else{ 
-		return;	
-	}
+	else return;	
 }
 
-void fill_ArtNode(T_ArtNode *node)
+void fill_art_node(T_ArtNode *node)
 {
-	
 	//fill to 0's
 	memset (node, 0, sizeof(node));
 	
@@ -426,8 +370,8 @@ void fill_ArtNode(T_ArtNode *node)
 	memcpy (node->subnetMask, factory_subnetMask, 4);     // network mask (art-net use 'A' network type)
 	
 	sprintf((char *)node->id, "Art-Net\0"); // *** don't change never ***
-	sprintf((char *)node->shortname, "Control node\0");
-	sprintf((char *)node->longname, "Interactive System Master Control Node (c) Robbie Smedts\0");
+	sprintf((char *)node->shortname, "deskontrol node\0");
+	sprintf((char *)node->longname, "Art-net Node v0.2 (c) 2013 Toni Merino - www.deskontrol.net\0");
 	
 	memset (node->porttypes,  0x80, 4);
 	memset (node->goodinput,  0x08, 4);
@@ -450,14 +394,27 @@ void fill_ArtNode(T_ArtNode *node)
 	node->swin       [2] = 0x02;
 	node->swin       [3] = 0x03;
 	
-
+	#if defined(USE_UNIVERSE_0)
 	node->goodoutput [0] = 0x80;
+	#endif
 
-	node->etsamanH = "S";        // The ESTA manufacturer code.
-	node->etsamanL = "R";        // The ESTA manufacturer code.
+	#if defined(USE_UNIVERSE_1)
+	node->goodoutput [1] = 0x80;
+	#endif
+
+	#if defined(USE_UNIVERSE_2)
+	node->goodoutput [2] = 0x80;
+	#endif
+
+	#if defined(USE_UNIVERSE_3)
+	node->goodoutput [3] = 0x80;
+	#endif
+
+	node->etsaman[0] = 0;        // The ESTA manufacturer code.
+	node->etsaman[1] = 0;        // The ESTA manufacturer code.
 	node->localPort  = 0x1936;   // artnet UDP port is by default 6454 (0x1936)
 	node->verH       = 0;        // high byte of Node firmware revision number.
-	node->ver        = 1;        // low byte of Node firmware revision number.
+	node->ver        = 2;        // low byte of Node firmware revision number.
 	node->ProVerH    = 0;        // high byte of the Art-Net protocol revision number.
 	node->ProVer     = 14;       // low byte of the Art-Net protocol revision number.
 	node->oemH       = 0;        // high byte of the oem value.
@@ -470,69 +427,6 @@ void fill_ArtNode(T_ArtNode *node)
 	node->style      = 0;        // StNode style - A DMX to/from Art-Net device
 }
 
-void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
-{
-	//fill to 0's
-	memset (poll_reply, 0, sizeof(poll_reply));
-	
-	//copy data from node
-	memcpy (poll_reply->ID, node->id, sizeof(poll_reply->ID));
-	memcpy (poll_reply->BoxAddr->IP, node->localIp, sizeof(poll_reply->BoxAddr->IP));
-	memcpy (poll_reply->Mac, node->mac, sizeof(poll_reply->Mac));
-	memcpy (poll_reply->ShortName, node->shortname, sizeof(poll_reply->ShortName));
-	memcpy (poll_reply->LongName, node->longname, sizeof(poll_reply->LongName));
-	memcpy (poll_reply->NodeReport, node->nodereport, sizeof(poll_reply->NodeReport));
-	memcpy (poll_reply->PortTypes, node->porttypes, sizeof(poll_reply->PortTypes));
-	memcpy (poll_reply->GoodInput, node->goodinput, sizeof(poll_reply->GoodInput));
-	memcpy (poll_reply->GoodOutputA, node->goodoutput, sizeof(poll_reply->GoodOutputA));
-	memcpy (poll_reply->SwIn, node->swin, sizeof(poll_reply->SwIn));
-	memcpy (poll_reply->SwOut, node->swout, sizeof(poll_reply->SwOut));
-	memcpy (poll_reply->EstaManHi, node->etsamanH, sizeof(poll_reply->EstaManHi));
-	memcpy (poll_reply->EstaManLo, node->etsamanL, sizeof(poll_reply->EstaManLo));
-	
-	sprintf((char *)poll_reply->NodeReport, "%i nRF output universe active.\0", node->numbports);
-	
-	poll_reply->OpCode = 0x2100;  // ARTNET_REPLY
-	poll_reply->BoxAddr->Port = node->localPort;
-	poll_reply->VersionInfoHi = node->verH;
-	poll_reply->VersionInfoLo = node->ver;
-	poll_reply->NetSwitch = node->subH;
-	poll_reply->SubSwitch = node->sub;
-	poll_reply->OemHi = node->oemH;
-	poll_reply->OemLo = node->oem;
-	poll_reply->Status = node->status;
-	poll_reply->NumPortsHi = node->numbportsH;
-	poll_reply->NumPortsLo = node->numbports;
-	poll_reply->SwMacro         = node->swmacro;
-	poll_reply->SwRemote        = node->swremote;
-	poll_reply->Style           = node->style;
-} 
-
-uint8_t handle_dmx(T_ArtDmx *packet)
-{
-	if(packet->SubUni == ArtNode.swout[0])
-	{
-	  memcpy ((uint8_t *) artnet_data_buffer, (uint8_t *)packet->Data, MaxDataLength);
-	}
-}
-
-uint8_t handle_poll(T_ArtPoll *packet, uint8_t *p_uc_data)
-{
-	if((packet->Flags & 8) == 1) // controller say: send unicast reply
-	{
-		send_reply(UNICAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-	}
-	else // controller say: send broadcast reply
-	{
-		send_reply(BROADCAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-	}
-}
-
-uint8_t handle_address(T_ArtAddress *packet, uint8_t *p_uc_data)
-{
-	send_reply(UNICAST, (uint8_t *)&ArtPollReply, sizeof(ArtPollReply));
-}
-
 uint16_t get_packet_type(uint8_t *packet) //this get artnet packet type
 {
 	if (! memcmp( packet, ArtNode.id, 8))
@@ -540,57 +434,8 @@ uint16_t get_packet_type(uint8_t *packet) //this get artnet packet type
 		return BYTES_TO_SHORT(packet[9], packet[8]);
 	}
 	return 0;  // bad packet
-}
+}*/
 
-void send_reply(uint8_t mode_broadcast, uint8_t *packet, uint16_t size)
-{
-	uint8_t ul_rc = GMAC_OK;
-	
-	if(mode_broadcast == 1) // send broadcast packet
-	{
-		ul_rc = gmac_dev_write(&gs_gmac_dev, p_uc_data, ul_size, NULL);
-		Udp.sendPacket(packet, size, ArtNode.broadcastIp, ArtNode.remotePort);
-	}
-	else // send unicast packet to controller
-	{
-		Udp.sendPacket(packet, size, ArtNode.remoteIp, ArtNode.remotePort);
-	}
-	if (ul_rc != GMAC_OK)
-}
-
-#if LWIP_UDP
-void udpecho_raw_init(void)
-{
-	udpecho_raw_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
-	if (udpecho_raw_pcb != NULL) {
-		err_t err;
-
-		err = udp_bind(udpecho_raw_pcb, IP_ANY_TYPE, 7);
-		if (err == ERR_OK) {
-			udp_recv(udpecho_raw_pcb, udpecho_raw_recv, NULL);
-			} else {
-			/* abort? output diagnostic? */
-		}
-		} else {
-		/* abort? output diagnostic? */
-	}
-}
-
-static void udpecho_raw_recv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
-{
-	LWIP_UNUSED_ARG(arg);
-	if (p != NULL) {
-		/* send received packet back to sender */
-		udp_sendto(upcb, p, addr, port);
-		/* free the pbuf */
-		pbuf_free(p);
-	}
-}
-#endif
-=======
->>>>>>> parent of 3142a92 (PROGRESS)
-=======
->>>>>>> parent of 3142a92 (PROGRESS)
 /// @cond 0
 /**INDENT-OFF**/
 #ifdef __cplusplus

@@ -291,8 +291,7 @@ int main (void)
 		if (GMAC_OK == read_dev_gmac()) {
 			if (ul_frm_size_rx > 0) {
 				// Handle input frame
-				gmac_process_eth_packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
-				//handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
+				handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx);
 				artnetToCommand();
 			}//end of process
 		}
@@ -315,20 +314,23 @@ void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 		p_ip_header_t p_ip = (p_ip_header_t) (p_uc_data+ ETH_HEADER_SIZE);
 		if (p_ip->ip_p == IP_PROT_UDP){
 			/*Check on added Art-Net header*/
-			printf("M: UDP\r\n");
+			//printf("M: UDP\r\n");
+/************************************************************************/
+/* Controle op Art-Net anders uitvoeren                                 */
+/************************************************************************/
 			if (ul_size > hdr_len){
-				PacketType = (T_ArtPacketType) get_packet_type(p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE); 
+				PacketType = (T_ArtPacketType) get_packet_type(p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 				if(PacketType == FAULTY_PACKET){  // bad packet
 					return;
 				}	
-				printf("M: Art-Net compatible\r\n");
+				//printf("M: Art-Net compatible\r\n");
 				*packetBuffer = *(p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 				if(PacketType == ARTNET_DMX){
 					if(sizeof(packetBuffer) < sizeof(T_ArtDmx)){ 
 						return;
 					}
 					else{
-						printf("M: DMX\r\n");
+						//printf("M: DMX\r\n");
 						handle_dmx((T_ArtDmx *)&packetBuffer);
 					}
 				}
@@ -358,8 +360,16 @@ void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 				}
 			}
 		}
+		else if(p_ip->ip_p == IP_PROT_ICMP)
+		{
+			gmac_process_ICMP_packet(p_uc_data, ul_size);
+		}
 	}
-	else{ 
+	else if(eth_pkt_format == ETH_PROT_ARP){
+		gmac_process_arp_packet(p_uc_data, ul_size);
+	}
+	else{
+		printf("=== Default w_pkt_format= 0x%X===\n\r", eth_pkt_format);
 		return;	
 	}
 }
@@ -465,7 +475,7 @@ void handle_dmx(T_ArtDmx *packet)
 	if(packet->SubUni == ArtNode.swout[0])
 	{
 	  memcpy ((uint8_t *) artnet_data_buffer, (uint8_t *)packet->Data, MaxDataLength);
-	  printf("M: DMX saved\r\n");
+	  //printf("M: DMX saved\r\n");
 	}
 }
 
@@ -474,19 +484,19 @@ void handle_poll(T_ArtPoll *packet, uint8_t *p_uc_data)
 	if((packet->Flags & 8) == 1) // controller say: send unicast reply
 	{
 		send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
-		printf("M: ArtPollReply Unicast\r\n");
+		//printf("M: ArtPollReply Unicast\r\n");
 	}
 	else // controller say: send broadcast reply
 	{
 		send_reply(BROADCAST, p_uc_data, (uint8_t *)&ArtPollReply);
-		printf("M: ArtPollReply Broadcast\r\n");
+		//printf("M: ArtPollReply Broadcast\r\n");
 	}
 }
 
 void handle_address(T_ArtAddress *packet, uint8_t *p_uc_data) //Not properly implemented yet
 {
 	send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
-	printf("M: ArtPollReply unicast\r\n");
+	printf("M: Address unicast\r\n");
 }
 
 T_ArtPacketType get_packet_type(uint8_t *packet) //this get artnet packet type
@@ -551,6 +561,7 @@ void send_reply(uint8_t mode_broadcast, uint8_t *p_uc_data, uint8_t *packet)
 	}
 #endif	
 }
+
 /// @cond 0
 /**INDENT-OFF**/
 #ifdef __cplusplus

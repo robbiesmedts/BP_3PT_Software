@@ -25,6 +25,8 @@ extern uint8_t gs_uc_ip_address[];
 uint32_t read_dev_gmac(void);
 uint32_t write_dev_gmac(void *p_buffer, uint32_t ul_size);
 bool init_gmac_ethernet(void);
+void gmac_process_arp_packet(uint8_t *p_uc_data, uint32_t ul_size);
+void gmac_process_ICMP_packet(uint8_t *p_uc_data, uint32_t ul_size);
 void at24mac_get_mac_address(void);
 void gmac_display_ip_packet(p_ip_header_t p_ip_header, uint32_t ul_size);
 void gmac_process_eth_packet(uint8_t *p_uc_data, uint32_t ul_size);
