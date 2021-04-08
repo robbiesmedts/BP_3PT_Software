@@ -22,7 +22,7 @@
         If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
 #define DEBUG
-//#define CONTINIOUS
+#define CONTINIOUS
 #define INTERRUPT
 
 #include <SPI.h>
@@ -45,7 +45,9 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
    destAddr     //adres (4x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
-   dataValue    //variabele (16bits) om binnenkomende/uitgaande data in op te slagen
+   intensity    //intensity of the LEDs
+   hue          //color of the LEDs transcoded in a hue
+   saturation   //saturation of the colors
    command      //commando (8bits) gestuctureerd volgens command table
 
    command table
@@ -57,7 +59,9 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 */
 struct dataStruct {
   uint32_t destAddr;
-  uint16_t dataValue; //HSB Intensity data, LSB Color data
+  uint8_t intensity;
+  uint8_t hue;
+  uint8_t saturation;
   uint8_t command;
 } dataIn, dataOut;
 
@@ -67,11 +71,10 @@ uint8_t mappedReadings[2];
 /*Variables for the LED*/
 #define NUM_LEDS 10
 #define DATA_PIN 1
-#define BRIGHTNESS 180
 #define numReadings 6
 
 CRGB leds[NUM_LEDS];
-CHSV hsv(0, 255, BRIGHTNESS);
+CHSV hsv(0, 0, 0);
 
 const int nRFint_pin = 2;
 const int MMAint_pin = 3;
@@ -84,7 +87,6 @@ int16_t MMA_upperLimit = 1200;
 
 
 void setup() {
-
   pinMode(nRFint_pin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(nRFint_pin), nRF_IRQ, LOW);
 
@@ -107,7 +109,6 @@ void setup() {
     Serial.println("Accel Initialised");
 
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
-  FastLED.setBrightness(BRIGHTNESS);
 
   //print all settings of nRF24L01
 #ifdef DEBUG
@@ -121,9 +122,7 @@ void setup() {
 }
 
 void loop() {
-  uint8_t currentCommand;
-  uint16_t currentValue;
-  uint32_t currentDestAddr;
+  uint8_t deskHue, deskSat, deskInt;
   uint8_t map_x, map_y, map_z;
 
 #ifdef INTERRUPT  
@@ -140,6 +139,15 @@ void loop() {
 	  Serial.println("IRQ geweest");
 	  printf("Current command: %d\n\r", dataIn.command);
 #endif
+  if(dataIn.hue != 0 || datain.hue != deskHue)
+    deskHue = dataIn.hue;
+
+  if(dataIn.saturation != 0 || dataIn.saturation != deskSat)
+    deskSat = dataIn.daturation;
+
+  if(dataIn.intensity != 0 || dataIn.intensity != deskInt)
+    deskInt = dataIn.intensity;
+    
 	}//end fetch command
 
 	switch (dataIn.command){
@@ -156,13 +164,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 64)); //GRB
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity));
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = AXIS; //sensor input
+			dataOut.saturation = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
@@ -170,7 +178,7 @@ void loop() {
 			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
 	printf("%ld", dataIn.destAddr);
-	printf("\n\rdata send: %d\n\r", dataOut.dataValue);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
 			radio.startListening();
 			break;
@@ -178,9 +186,9 @@ void loop() {
 		case 3: //receive sensor value and use for own actuator
 #ifdef DEBUG
 	printf("receiving address: %ld\n\r", dataIn.destAddr);
-	printf("received data: %d\n\r", dataIn.dataValue);
+	printf("received data: %d %d %d\n\r", dataIn.hue, dataIn.saturation, dataIn.intensity);
 #endif			
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -232,13 +240,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(AXIS, 0, 64)); //GRB	
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity)); //GRB	
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = AXIS; //sensor input
+			dataOut.saturation = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
@@ -256,7 +264,7 @@ void loop() {
 	printf("receiving address: %ld\n\r", dataIn.destAddr);
 	printf("received data: %d\n\r", dataIn.dataValue);
 #endif
-      fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
+      fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
 			break;
 		case 4:
 #ifdef DEBUG
@@ -306,13 +314,13 @@ void loop() {
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CRGB(AXIS 0,  0));
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity));
 			break;
 
 		case 2: // read sensor and send to other actuator
 			dataOut.command = 3;
 			accelRead();
-			dataOut.dataValue = AXIS; //sensor input
+			dataOut.saturation = AXIS; //sensor input
 			dataOut.destAddr = listeningPipes[localAddr];
 
 			radio.stopListening();
@@ -330,7 +338,7 @@ void loop() {
 	printf("receiving address: %ld\n\r", dataIn.destAddr);
 	printf("received data: %d\n\r", dataIn.dataValue);
 #endif
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.dataValue, 255, BRIGHTNESS));
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
 			break;
 		case 4:
 #ifdef DEBUG

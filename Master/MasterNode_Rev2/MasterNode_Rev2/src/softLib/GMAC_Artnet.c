@@ -226,6 +226,7 @@ void gmac_process_ICMP_packet(uint8_t *p_uc_data, uint32_t ul_size)
 		}
 	}
 }
+
 /**
  * Function is from the example project and not further of service in this project
  * \brief Display the IP packet.

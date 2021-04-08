@@ -54,14 +54,8 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *
  * Art-Net functionality			                                    
  *	
- *	channel n: General functionality node 0
- *	channel n+1: Extra functionality node 0
- *	channel n+2: General functionality node 1
- *	channel n+3: Extra functionality node 1
- *	channel n+4: General functionality node 2
- *	channel n+5: Extra functionality node 2
- *	channel n+6: General functionality node 3
- *	channel n+7: Extra functionality node 3
+ *	channel n: Dimmer Node 1
+ *	channel n+1: General functionality Node 1
  *	
  * General functionality:
  *		0-10	| Node disabled
@@ -302,7 +296,7 @@ int main (void)
 	- Check if UDP -
 	- Check if ArtNet -
 	- Check ArtNet packetType -
-	- handle packetType
+	- Handle packetType -
 */
 void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
