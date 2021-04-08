@@ -17,9 +17,12 @@
    CONTINIOUS
         enables the node to to excecute a given command until an other command is received.
         if CONTINIOUS is not active a command is excecuted once after the command is received.
+   INTERRUPT
+        Enables the interrupt sequence so the nRF module alerts the controller if data is available.
+        If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
 #define DEBUG
-//#define CONTINIOUS
+#define CONTINIOUS
 #define INTERRUPT
 
 #include <SPI.h>
@@ -75,6 +78,8 @@ const int MMAint_pin = 3;
 
 int16_t MMA_lowerLimit = -1200;
 int16_t MMA_upperLimit = 1200;
+
+//defines the axis used for interaction
 #define AXIS mappedReadings[0] //[0] = X, [1] = Y, [2] = Z
 
 
@@ -104,8 +109,8 @@ void setup() {
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
   FastLED.setBrightness(BRIGHTNESS);
 
-#ifdef DEBUG
   //print all settings of nRF24L01
+#ifdef DEBUG
   radio.printDetails();
 #endif
 
@@ -186,17 +191,17 @@ void loop() {
 	  //do nothing
 		break;
 #ifdef DEBUG
-	printf("Display LED\n\r")
+	printf("Display LED\n\r");
 #endif
 	
 	FastLED.show();
 	
-/* delay om uitvoering te vertragen tot 50Hz
- * uitvoering wordt vertraagd met 20 ms 
- * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
+/* delay om uitvoering te vertragen tot 40Hz
+ * uitvoering wordt vertraagd met 25 ms 
+ * We gaan er van uit dat al de rest wordt "instant" wordt uitgevoerd. 
  * Wanneer het programma werkt kan dit verfijnt worden
  */
-	delay(20);
+	delay(24);
 	}// end switch
 
 #endif
