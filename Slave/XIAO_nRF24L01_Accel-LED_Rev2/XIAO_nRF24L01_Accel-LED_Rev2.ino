@@ -15,6 +15,7 @@
     GND -> nRF GND, MMA GND, WS2812B GND
     VCC -> WS2812B 5V, 
   
+  SOFTWARE
    Start-up for the Arduino Sensor/Actuator side of the project
    What it should do:
    receive commando's adressed to it's address,
@@ -26,17 +27,17 @@
    3) read received data and apply to actuator
    4) reset the node / recalibrate sensor & actuator
 
-   flow altering defined variables:
-   DEBUG
+   FLOW ALTERING defined variables:
+    - DEBUG
         enables all the debugging functionality and sends informational data over Serial COM port to an connected PC (baud 115200)
-   CONTINIOUS
+    - CONTINIOUS
         enables the node to to excecute a given command until an other command is received.
         if CONTINIOUS is not active a command is excecuted once after the command is received.
-   INTERRUPT
+    - INTERRUPT
         Enables the interrupt sequence so the nRF module alerts the controller if data is available.
         If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
-#define DEBUG
+//#define DEBUG
 //#define CONTINIOUS
 #define INTERRUPT
 
@@ -94,7 +95,7 @@ int8_t mappedReadings[2];
 /*Variables for the LED*/
 #define NUM_LEDS 10
 #define DATA_PIN 1
-#define numReadings 6
+#define numReadings 10
 
 CRGB leds[NUM_LEDS];
 CHSV hsv(0, 0, 0);
@@ -102,8 +103,16 @@ CHSV hsv(0, 0, 0);
 const int nRFint_pin = 2;
 const int MMAint_pin = 3;
 
-int16_t MMA_lowerLimit = -1200;
-int16_t MMA_upperLimit = 1200;
+/*	nauwkeurigheid lezing kan worden aangepast in deze functies.
+	variatie in kleur staat hier meer in verband.
+	grote nauwkeurigheid = subtiele variatie; lage nauwkeurigheid = grote variatie	
+	
+	map(var, fromLow, fromHigh, toLow, toHigh)
+	door de fromLow en fromHigh aan te passen veranderd de nauwkeurigheid
+	-2047 tot 2046 is de hoogste nauwkeurigheid en de kleinste verandering
+*/
+int16_t MMA_lowerLimit = -1400;
+int16_t MMA_upperLimit = 1400;
 
 //defines the axis used for interaction
 #define AXIS mappedReadings[0] //[0] = X, [1] = Y, [2] = Z
@@ -115,8 +124,8 @@ void setup() {
 
 #ifdef DEBUG
   SerialUSB.begin(115200);
-  while(!Serial);
-  SerialUSB.println("XIAO startup");
+  //while(!Serial);
+  //SerialUSB.println("XIAO startup");
   printf_begin();
 #endif
 
@@ -128,7 +137,7 @@ void setup() {
 
   radio.setPALevel(RF24_PA_HIGH);
 
-  if (accel.init(MMA8452Q_Scale::SCALE_2G, MMA8452Q_ODR::ODR_50)){SerialUSB.println("Accel Initialised");}
+  if (accel.init(MMA8452Q_Scale::SCALE_2G, MMA8452Q_ODR::ODR_100)){SerialUSB.println("Accel Initialised");}
 
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 
@@ -391,7 +400,14 @@ printf("case not implemented %d", dataIn.senCommand);
 	printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
-				calcSensorVal = deskHue + AXIS;
+				inBetween = deskHue + AXIS;
+				if (inBetween > 0 && inBetween < 255)
+					calcSensorVal = (uint8_t)inBetween;
+				if (inBetween < 0)
+					calcSensorVal = 0;
+				if (inBetween > 255)
+					calcSensorVal = 255;
+
 				fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, deskSat, deskInt));
 				break;
 
@@ -411,6 +427,7 @@ printf("case not implemented %d", dataIn.senCommand);
 					calcSensorVal = 0;
 				if (inBetween > 255)
 					calcSensorVal = 255;
+
 				fill_solid(leds, NUM_LEDS, CHSV(deskHue, calcSensorVal, deskInt));
 				break;
 			
@@ -422,13 +439,14 @@ printf("case not implemented %d", dataIn.senCommand);
 	printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
-				inBetween = deskSat + AXIS;
+				inBetween = deskInt + AXIS;
 				if (inBetween > 0 && inBetween < 255)
-				calcSensorVal = (uint8_t)inBetween;
+				  calcSensorVal = (uint8_t)inBetween;
 				if (inBetween < 0)
-				calcSensorVal = 0;
+				  calcSensorVal = 0;
 				if (inBetween > 255)
-				calcSensorVal = 255;
+				  calcSensorVal = 255;
+
 				fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, calcSensorVal));
 				break;
 		
@@ -757,8 +775,18 @@ printf("Display LED\n\r");
 
 //read values from accelerometer
 void accelRead(void){
-  	accel.read();
-  	
+  	int16_t readings[2];
+    
+    for(uint8_t i = 0; i < numReadings; i++){
+      accel.read();
+      readings[0] += accel.raw_x;
+      readings[1] += accel.raw_y;
+      readings[2] += accel.raw_z;
+    }
+
+    readings[0] = readings[0]/numReadings;
+    readings[1] = readings[1]/numReadings;
+    readings[2] = readings[2]/numReadings;
 /*	nauwkeurigheid lezing kan worden aangepast in deze functies.
 	variatie in kleur staat hier meer in verband.
 	grote nauwkeurigheid = subtiele variatie; lage nauwkeurigheid = grote variatie	
@@ -767,9 +795,9 @@ void accelRead(void){
 	door de fromLow en fromHigh aan te passen veranderd de nauwkeurigheid
 	-2047 tot 2046 is de hoogste nauwkeurigheid en de kleinste verandering
 */
-  	mappedReadings[0] = map(accel.raw_x, MMA_lowerLimit, MMA_upperLimit, -128, 127);
-  	mappedReadings[1] = map(accel.raw_y, MMA_lowerLimit, MMA_upperLimit, -128, 127);
-  	mappedReadings[2] = map(accel.raw_z, MMA_lowerLimit, MMA_upperLimit, -128, 127);
+  	mappedReadings[0] = map(readings[0], MMA_lowerLimit, MMA_upperLimit, -128, 127);
+  	mappedReadings[1] = map(readings[1], MMA_lowerLimit, MMA_upperLimit, -128, 127);
+  	mappedReadings[2] = map(readings[2], MMA_lowerLimit, MMA_upperLimit, -128, 127);
 }
 
 void nRF_IRQ() {

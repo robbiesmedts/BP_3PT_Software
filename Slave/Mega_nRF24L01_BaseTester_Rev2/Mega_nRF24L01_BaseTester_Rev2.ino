@@ -53,7 +53,6 @@ struct dataStruct {
 } dataIn, dataOut;
 
 volatile byte nRF_Status;
-bool send = 0;
 
 RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 0; //node 0 is masternode
@@ -82,71 +81,6 @@ void setup() {
   radio.printDetails();
   printf("data size: %d bytes\n\r", sizeof(dataStruct));
 #endif
-
-/*  while(1)
-  {
-    radio.stopListening();
-
- // commando 1 naar node 2.0
- // dataValue
-
-  radio.openWritingPipe(listeningPipes[1]);
-  dataOut.command = 1;
-  dataOut.destAddr = listeningPipes[1];
-  dataOut.dataValue = 0;
-
-#ifdef DEBUG
-  Serial.println("Commando 1 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
-#endif
-  //verzend commando 1
-  for (int i = 0; i<1000; i++){
-    if (!radio.write(&dataOut, sizeof(dataStruct)))
-    {
-      Serial.println("transmission failed");
-      break;
-    }
-    delay(20);
-  }
-
-  radio.openWritingPipe(listeningPipes[1]);
-  dataOut.command = 3;
-  dataOut.destAddr = listeningPipes[1];
-
-#ifdef DEBUG
-  Serial.println("Commando 3 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
-#endif
-
-  for(uint8_t i =0; i<255; i++){
-    dataOut.dataValue = i;
-    
-    if (!radio.write(&dataOut, sizeof(dataStruct)))
-    {
-      Serial.println("transmission failed");
-      break;
-    }
-    delay(20);
-  }
-  
-  //  einde programma, stuur stop commando
-  
-  dataOut.command = 0;
-  dataOut.destAddr = 0x00;
-  dataOut.dataValue = 0;
-
-#ifdef DEBUG
-  Serial.println("Commando 0 send to address 1");
-#endif
-
-  radio.openWritingPipe(listeningPipes[1]);
-  if (!radio.write(&dataOut, sizeof(dataStruct)))
-  {
-    Serial.println("transmission failed");
-  }
-
-  delay(1000); //wacht 2s
-  }*/
 }
 
 void loop() {
@@ -161,14 +95,12 @@ void loop() {
    
    radio.stopListening();
    
-/* Testing basic DMX capabilities node
- * Increasing intensity
- */
+// Testing basic HSI capabilities node
+
   radio.openWritingPipe(listeningPipes[1]);
   dataOut.srcNode = 0;
   dataOut.destNode = 1;
   dataOut.senCommand = disabled;
-  
   
 #ifdef DEBUG
   Serial.print("Commando 0 send to address: ");
@@ -176,7 +108,7 @@ void loop() {
   Serial.println("increasing Intensity");
 #endif
   //increasing intensity
-  for (int i = 0; i<255; i++){
+  for (int i = 0; i<256; i++){
     dataOut.intensity = i;
     if (!radio.write(&dataOut, sizeof(dataStruct)))
     {
@@ -188,9 +120,8 @@ void loop() {
 #ifdef DEBUG
   Serial.println("Changing saturation");
 #endif
-
   //Changing saturation
-  for (int i = 0; i<255; i++){
+  for (int i = 0; i<256; i++){
     dataOut.saturation = i;
     if (!radio.write(&dataOut, sizeof(dataStruct)))
     {
@@ -203,55 +134,85 @@ void loop() {
   Serial.println("Changing hue");
 #endif
   //Changing Hue
-  for (int i = 0; i<255; i++){
+  for (int i = 0; i<256; i++){
     dataOut.hue = i;
-  //verzend commando
     if (!radio.write(&dataOut, sizeof(dataStruct)))
     {
       Serial.println("transmission failed");
     }
     delay(20);
   }
-/*
-  radio.openWritingPipe(listeningPipes[1]);
-  dataOut.command = 3;
-  dataOut.destAddr = listeningPipes[1];
 
 #ifdef DEBUG
-  Serial.println("Commando 3 send to address: ");
+  Serial.print("Commando 1 send to address: ");
   printf("%ld\n\r", listeningPipes[1]);
+  Serial.println("Activate sensor -> Hue");
+  Serial.println("Hue 50%, Saturation 75%, Intensity 100%");
+  Serial.println("Active for 20s");
 #endif
-
-  for(uint8_t i =0; i<255; i++){
-    dataOut.dataValue = i;
-    
+//activate sensor -> Hue
+  radio.openWritingPipe(listeningPipes[1]);
+  dataOut.srcNode = 0;
+  dataOut.destNode = 1;
+  dataOut.senCommand = active_hue;
+  dataOut.hue = 128;
+  dataOut.intensity = 255;
+  dataOut.saturation = 192;
+  
+  for (int i = 0; i<1000; i++){
     if (!radio.write(&dataOut, sizeof(dataStruct)))
     {
       Serial.println("transmission failed");
     }
     delay(20);
   }
-  
-
-//einde programma, stuur stop commando
-
-  dataOut.command = 0;
-  dataOut.destAddr = 0x00;
-  dataOut.dataValue = 0;
 
 #ifdef DEBUG
-  Serial.println("Commando 0 send to address 1");
+  Serial.print("Commando 1 send to address: ");
+  printf("%ld\n\r", listeningPipes[1]);
+  Serial.println("Activate sensor -> Saturation");
+  Serial.println("Hue 50%, Saturation 75%, Intensity 100%");
+  Serial.println("Active for 20s");
 #endif
-
+//activate sensor -> Saturation
   radio.openWritingPipe(listeningPipes[1]);
-  if (!radio.write(&dataOut, sizeof(dataStruct)))
-  {
-    Serial.println("transmission failed");
+  dataOut.srcNode = 0;
+  dataOut.destNode = 1;
+  dataOut.senCommand = active_sat;
+  dataOut.hue = 128;
+  dataOut.intensity = 255;
+  dataOut.saturation = 192;
+  
+  for (int i = 0; i<1000; i++){
+    if (!radio.write(&dataOut, sizeof(dataStruct)))
+    {
+      Serial.println("transmission failed");
+    }
+    delay(20);
   }
-/*
+
 #ifdef DEBUG
-  Serial.println("einde programma");
+  Serial.print("Commando 1 send to address: ");
+  printf("%ld\n\r", listeningPipes[1]);
+  Serial.println("Activate sensor -> Intensity");
+  Serial.println("Hue 25%, Saturation 75%, Intensity = 50%");
+  Serial.println("Active for 20s");
 #endif
-*/
-  //delay(1000); //wacht 2s
-}
+//activate sensor -> intensity
+  radio.openWritingPipe(listeningPipes[1]);
+  dataOut.srcNode = 0;
+  dataOut.destNode = 1;
+  dataOut.senCommand = active_int;
+  dataOut.hue = 64;
+  dataOut.saturation = 192;
+  dataOut.intensity = 128;
+  
+  for (int i = 0; i<1000; i++){
+    if (!radio.write(&dataOut, sizeof(dataStruct)))
+    {
+      Serial.println("transmission failed");
+    }
+    delay(20);
+  }
+
+}//End loop()
