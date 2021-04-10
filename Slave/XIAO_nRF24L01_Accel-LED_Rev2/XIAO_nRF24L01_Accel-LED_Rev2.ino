@@ -1,5 +1,20 @@
 /* About the software
 
+  HARDWARE CONNECTIONS
+    D1 -> WS2812B Din 
+    D2 -> nRF24 IRQ
+    D3 -> MMA INT1
+    D4 -> MMA SDA
+    D5 -> MMA SCL
+    D6 -> nRF CS
+    D7 -> nRF CE
+    D8 -> nRF SCK
+    D9 -> nRF24 MISO
+    D10 -> nRF24 MOSI
+    3V3 -> nRF VCC
+    GND -> nRF GND, MMA GND, WS2812B GND
+    VCC -> WS2812B 5V, 
+  
    Start-up for the Arduino Sensor/Actuator side of the project
    What it should do:
    receive commando's adressed to it's address,
@@ -22,7 +37,7 @@
         If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
 #define DEBUG
-#define CONTINIOUS
+//#define CONTINIOUS
 #define INTERRUPT
 
 #include <SPI.h>
@@ -36,38 +51,46 @@
 #include <printf.h>
 #endif
 
-/*Variables for the nRF module*/
-RF24 radio(7, 6, 5000000); //CE, CSN
-const byte localAddr = 1; //node x in systeem // node 0 is masternode
-const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL};
-bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
+/*Command enumeration*/
+typedef enum sensorCommand{
+  disabled = 0,
+  active_hue,
+  active_sat,
+  active_int, 
+  receive_hue,
+  receive_sat,
+  receive_int
+}e_command;
 
 /* Datapaket standaard.
    datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
-   destAddr     //adres (4x8bits) ontvangen met pakket, zal volgens commando een ontvangend adres worden of een adres waarnaar gezonden word
+   srcNode		//Enumeration van de node waar de data van origineerd
+   destNode		//Enumeration van de node waar deze data voor bestemd is.
+   command      //commando (Enum) gestuctureerd volgens command table
    intensity    //intensity of the LEDs
    hue          //color of the LEDs transcoded in a hue
    saturation   //saturation of the colors
-   command      //commando (8bits) gestuctureerd volgens command table
-
-   command table
-   0 = Stop command
-   1 = use sensor for own actuator
-   2 = send sensor value to other actuator
-   3 = receive sensor value for own actuator
-   4 = reset node
+   sensorval    //sensor values to use in calculations sigend (8-bit, value tussen -128 tot 127)
 */
 struct dataStruct {
-  uint32_t destAddr;
+  byte srcNode;
+  byte destNode;
+  e_command senCommand;
   uint8_t intensity;
   uint8_t hue;
   uint8_t saturation;
-  uint8_t command;
+  int8_t sensorVal;
 } dataIn, dataOut;
+
+/*Variables for the nRF module*/
+RF24 radio(7, 6, 5000000); //CE, CSN
+const byte localAddr = 1;
+const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL};
+bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
 /*Variables for the MMA module*/
 MMA8452Q accel;
-uint8_t mappedReadings[2];
+int8_t mappedReadings[2];
 /*Variables for the LED*/
 #define NUM_LEDS 10
 #define DATA_PIN 1
@@ -84,46 +107,46 @@ int16_t MMA_upperLimit = 1200;
 
 //defines the axis used for interaction
 #define AXIS mappedReadings[0] //[0] = X, [1] = Y, [2] = Z
-
+uint8_t deskHue, deskSat, deskInt;
 
 void setup() {
   pinMode(nRFint_pin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(nRFint_pin), nRF_IRQ, LOW);
 
 #ifdef DEBUG
-  Serial.begin(115200);
+  SerialUSB.begin(115200);
+  while(!Serial);
+  SerialUSB.println("XIAO startup");
   printf_begin();
 #endif
 
   //Initailisation of the nRF24L01 chip
-  if(radio.begin())
-	Serial.println("radio initialised");
-	
+  if(radio.begin()){SerialUSB.println("radio initialised");}
+  
   radio.setAddressWidth(4);
-  for (uint8_t i = 0; i < 4; i++)
-    radio.openReadingPipe(i, listeningPipes[localAddr] + i);
+  for (uint8_t i = 0; i < 4; i++){radio.openReadingPipe(i, listeningPipes[localAddr] + i);}
 
   radio.setPALevel(RF24_PA_HIGH);
 
-  if (accel.init(MMA8452Q_Scale::SCALE_2G, MMA8452Q_ODR::ODR_50))
-    Serial.println("Accel Initialised");
+  if (accel.init(MMA8452Q_Scale::SCALE_2G, MMA8452Q_ODR::ODR_50)){SerialUSB.println("Accel Initialised");}
 
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 
   //print all settings of nRF24L01
 #ifdef DEBUG
   radio.printDetails();
+  SerialUSB.printf("data size: %d bytes\n\r", sizeof(dataStruct));
 #endif
 
-  if (!accel.active())
-	Serial.println("accel active");
+  if (!accel.active()){SerialUSB.println("accel active");}
 	
   radio.startListening();
 }
 
 void loop() {
-  uint8_t deskHue, deskSat, deskInt;
-  uint8_t map_x, map_y, map_z;
+	uint8_t calcSensorVal;
+	float inBetween;
+	uint8_t map_x, map_y, map_z;
 
 #ifdef INTERRUPT  
 /* Uitvoering op interrupt basis
@@ -136,81 +159,201 @@ void loop() {
 		b_rx_ready = 0;
 		radio.read(&dataIn, sizeof(dataIn));
 #ifdef DEBUG
-	  Serial.println("IRQ geweest");
-	  printf("Current command: %d\n\r", dataIn.command);
+    SerialUSB.println("IRQ geweest");
+    SerialUSB.printf("srcNode: %d\n\r", dataIn.srcNode);
+    SerialUSB.printf("destNode: %d\n\r", dataIn.destNode);
+    SerialUSB.printf("command: %d\n\r", dataIn.senCommand);
+    SerialUSB.printf("HSI: %d, %d, %d\n\r", dataIn.hue, dataIn.saturation, dataIn.intensity);
 #endif
-  if(dataIn.hue != 0 || datain.hue != deskHue)
-    deskHue = dataIn.hue;
-
-  if(dataIn.saturation != 0 || dataIn.saturation != deskSat)
-    deskSat = dataIn.daturation;
-
-  if(dataIn.intensity != 0 || dataIn.intensity != deskInt)
-    deskInt = dataIn.intensity;
-    
+		if (dataIn.srcNode == 0){
+			deskHue = dataIn.hue;
+			deskSat = dataIn.saturation;
+			deskInt = dataIn.intensity;
+		}
 	}//end fetch command
-
-	switch (dataIn.command){
-		case 0: 
-			FastLED.clear();
+	
+	if(dataIn.destNode == localAddr){
+		switch (dataIn.senCommand){
+		case disabled: 
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
 			break;
 
-		case 1: //read sensor and use for own actuator
-			accelRead();
-		
+		case active_hue: //read sensor and add it to the hue value of the lightingdesk
+			accelRead();		
 #ifdef DEBUG
 	printf("%d\t", map_x);
 	printf("%d\t", map_y);
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity));
+			calcSensorVal = deskHue + AXIS;
+			fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, dataIn.saturation, dataIn.intensity));
 			break;
 
-		case 2: // read sensor and send to other actuator
-			dataOut.command = 3;
+		case active_sat: // read sensor and add it to the saturation value of the desk
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			
+			inBetween = deskSat + AXIS;
+			if (inBetween > 0 && inBetween < 255)
+				calcSensorVal = (uint8_t)inBetween;
+			if (inBetween < 0)
+				calcSensorVal = 0;
+			if (inBetween > 255)
+				calcSensorVal = 255;
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, calcSensorVal, dataIn.intensity));
+			break;
+			
+		case active_int: // read sensor and add it to the saturation value of the desk
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			inBetween = deskSat + AXIS;
+			if (inBetween > 0 && inBetween < 255)
+			calcSensorVal = (uint8_t)inBetween;
+			if (inBetween < 0)
+			calcSensorVal = 0;
+			if (inBetween > 255)
+			calcSensorVal = 255;
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, calcSensorVal));
+			break;
+		
+		default:
+#ifdef DEBUG
+printf("case not implemented %d", dataIn.senCommand);
+#endif
+			break;			
+		}// end switch
+    
+  FastLED.show();
+/* delay om uitvoering te vertragen tot 40Hz
+ * uitvoering wordt vertraagd met 25 ms 
+ * We gaan er van uit dat al de rest "instant" wordt uitgevoerd. 
+ * Wanneer het programma werkt kan dit verfijnt worden
+ */
+#ifdef DEBUG
+  printf("Display LED\n\r");
+#endif
+
+  delay(24);
+  
+	}// end if
+	if(dataIn.destnode != localAddr){ //data comes from or is destined to other node
+		switch (dataIn.senCommand){
+		case active_hue: //read sensor and add it to the hue value of the lightingdesk			
+			
+			dataOut.senCommand = receive_hue;
 			accelRead();
-			dataOut.saturation = AXIS; //sensor input
-			dataOut.destAddr = listeningPipes[localAddr];
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
 
 			radio.stopListening();
-			radio.openWritingPipe(dataIn.destAddr);//set destination address
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
 			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	printf("%ld", dataIn.destAddr);
+	printf("%ld", listeningPipes[dataIn.destNode]);
 	printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
 			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			
 			break;
 
-		case 3: //receive sensor value and use for own actuator
+		case active_sat: // read sensor and add it to the saturation value of the desk
+			dataOut.senCommand = receive_sat;
+			accelRead();
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
+
+			radio.stopListening();
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	printf("receiving address: %ld\n\r", dataIn.destAddr);
-	printf("received data: %d %d %d\n\r", dataIn.hue, dataIn.saturation, dataIn.intensity);
-#endif			
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
 			break;
-		case 4:
+			
+		case active_int: // read sensor and add it to the saturation value of the desk
+			dataOut.senCommand = receive_int;
+			accelRead();
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
+
+			radio.stopListening();
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	Serial.print("reset node");
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
-	  //reset node
-	default:
-	  //do nothing
-		break;
+			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			break;
+		
+		case receive_hue:
+			accelRead();		
 #ifdef DEBUG
-	printf("Display LED\n\r");
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
 #endif
-	
-	FastLED.show();
-	
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, deskSat, deskInt));
+			break;
+			
+		case receive_sat:
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, calcSensorVal, deskHue));
+			break;
+			
+		case receive_int:
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, calcSensorVal));
+			break;
+		}// end switch
+
+#ifdef DEBUG
+  printf("Display LED\n\r");
+#endif
+
+    FastLED.show();
 /* delay om uitvoering te vertragen tot 40Hz
  * uitvoering wordt vertraagd met 25 ms 
- * We gaan er van uit dat al de rest wordt "instant" wordt uitgevoerd. 
+ * We gaan er van uit dat al de rest "instant" wordt uitgevoerd. 
  * Wanneer het programma werkt kan dit verfijnt worden
  */
-	delay(24);
-	}// end switch
+    delay(24);
+	}//end else	
 
 #endif
 
@@ -219,70 +362,193 @@ void loop() {
 */
 #ifndef CONTINIOUS //Interrupt Single operation
 	if(b_rx_ready){
-		b_rx_ready = 0; 
+		b_rx_ready = 0;
 		radio.read(&dataIn, sizeof(dataIn));
 #ifdef DEBUG
-	Serial.print("Incomming command: ");
-	Serial.println(dataIn.command);
+    SerialUSB.println("IRQ geweest");
+    SerialUSB.printf("srcNode: %d\n\r", dataIn.srcNode);
+    SerialUSB.printf("destNode: %d\n\r", dataIn.destNode);
+    SerialUSB.printf("command: %d\n\r", dataIn.senCommand);
+    SerialUSB.printf("HSI: %d, %d, %d\n\r", dataIn.hue, dataIn.saturation, dataIn.intensity);
 #endif
+		if (dataIn.srcNode == 0){
+			deskHue = dataIn.hue;
+			deskSat = dataIn.saturation;
+			deskInt = dataIn.intensity;
+		}
+	
+		if(dataIn.destNode == localAddr){
+			switch (dataIn.senCommand){
+			case disabled: 
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+				break;
 
-	switch (dataIn.command){
-		case 0:
-			FastLED.clear();
-			break;
-
-		case 1: //read sensor and use for own actuator
-			accelRead();
-			
+			case active_hue: //read sensor and add it to the hue value of the lightingdesk
+				accelRead();		
 #ifdef DEBUG
 	printf("%d\t", map_x);
 	printf("%d\t", map_y);
 	printf("%d\n\r", map_z);
 #endif
-			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity)); //GRB	
-			break;
+				//mapped raw value
+				calcSensorVal = deskHue + AXIS;
+				fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, deskSat, deskInt));
+				break;
 
-		case 2: // read sensor and send to other actuator
-			dataOut.command = 3;
-			accelRead();
-			dataOut.saturation = AXIS; //sensor input
-			dataOut.destAddr = listeningPipes[localAddr];
-
-			radio.stopListening();
-			radio.openWritingPipe(dataIn.destAddr);//set destination address
-			radio.write(&dataOut, sizeof(dataOut));
+			case active_sat: // read sensor and add it to the saturation value of the desk
+				accelRead();		
 #ifdef DEBUG
-	printf("%ld", dataIn.destAddr);
-	printf("\n\rdata send: %d", dataOut.dataValue);
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
 #endif
-			radio.startListening();
-			break;
-
-		case 3: //receive sensor value and use for own actuator
+				//mapped raw value
+			
+				inBetween = deskSat + AXIS;
+				if (inBetween > 0 && inBetween < 255)
+					calcSensorVal = (uint8_t)inBetween;
+				if (inBetween < 0)
+					calcSensorVal = 0;
+				if (inBetween > 255)
+					calcSensorVal = 255;
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, calcSensorVal, deskInt));
+				break;
+			
+			case active_int: // read sensor and add it to the saturation value of the desk
+				accelRead();		
 #ifdef DEBUG
-	printf("receiving address: %ld\n\r", dataIn.destAddr);
-	printf("received data: %d\n\r", dataIn.dataValue);
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
 #endif
-      fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
-			break;
-		case 4:
-#ifdef DEBUG
-
-#endif
-			//reset node
-		default:
-			//do nothing
-			break;
-		}//end switch
+				//mapped raw value
+				inBetween = deskSat + AXIS;
+				if (inBetween > 0 && inBetween < 255)
+				calcSensorVal = (uint8_t)inBetween;
+				if (inBetween < 0)
+				calcSensorVal = 0;
+				if (inBetween > 255)
+				calcSensorVal = 255;
+				fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, calcSensorVal));
+				break;
 		
+			default:
 #ifdef DEBUG
-	printf("Display LED\r\n");
+printf("case not implemented %d", dataIn.senCommand);
 #endif
-		FastLED.show();
-	}//end fetch-command
+				break;			
+			}// end switch
+ 
+      FastLED.show();
+
+#ifdef DEBUG
+  Serial.println("Display LED");
+#endif
+
+		}// end if
+		if(dataIn.destNode != localAddr){ //data comes from or is destined to other node
+			switch (dataIn.senCommand){
+			case active_hue: //read sensor and add it to the hue value of the lightingdesk			
+			
+				dataOut.senCommand = receive_hue;
+				accelRead();
+				dataOut.sensorVal = AXIS; //sensor input
+				dataOut.srcNode = localAddr;
+
+				radio.stopListening();
+				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+				radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+				radio.startListening();
+
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			
+				break;
+
+			case active_sat: // read sensor and add it to the saturation value of the desk
+				dataOut.senCommand = receive_sat;
+				accelRead();
+				dataOut.sensorVal = AXIS; //sensor input
+				dataOut.srcNode = localAddr;
+
+				radio.stopListening();
+				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+				radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+				radio.startListening();
+
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+				break;
+			
+			case active_int: // read sensor and add it to the saturation value of the desk
+				dataOut.senCommand = receive_int;
+				accelRead();
+				dataOut.sensorVal = AXIS; //sensor input
+				dataOut.srcNode = localAddr;
+
+				radio.stopListening();
+				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+				radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+				radio.startListening();
+
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+				break;
+		
+			case receive_hue:
+				accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+				//mapped raw value
+				calcSensorVal = deskHue + dataIn.sensorVal;
+				fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, deskSat, deskInt));
+				break;
+			
+			case receive_sat:
+				accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+				//mapped raw value
+				calcSensorVal = deskHue + dataIn.sensorVal;
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, calcSensorVal, deskHue));
+				break;
+			
+			case receive_int:
+				accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+				//mapped raw value
+				calcSensorVal = deskHue + dataIn.sensorVal;
+				fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, calcSensorVal));
+				break;
+			}// end switch
+#ifdef DEBUG
+  Serial.println("Display LED\n\r");
+#endif
+
+      FastLED.show();
+		}//end else	
+	}//end fetch command
 	
-#endif //endif CONTINIOUS
+#endif //end ifndef CONTINIOUS
 
 #endif //end INTERRUPT
 
@@ -292,71 +558,200 @@ void loop() {
 */
 #ifndef INTERRUPT
 	radio.whatHappened(b_tx_ok, b_tx_fail, b_rx_ready);
-	if (b_rx_ready){
+	if(b_rx_ready){
+		b_rx_ready = 0;
 		radio.read(&dataIn, sizeof(dataIn));
 #ifdef DEBUG
-	Serial.println("data ontvangen");
-	printf("Command: %d\n\r", dataIn.command);
+	  Serial.println("data available");
+	  printf("Current command: %d\n\r", dataIn.senCommand);
 #endif
-	}
+		if (dataIn.srcNode == 0){
+			deskHue = dataIn.hue;
+			deskSat = dataIn.saturation;
+			deskInt = dataIn.intensity;
+		}
+	}//end fetch command
 	
-	switch (dataIn.command){
-		case 0:
-			FastLED.clear();
+	if(dataIn.destNode == localAddr){
+		switch (dataIn.senCommand){
+		case disabled: 
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
 			break;
 
-		case 1: //read sensor and use for own actuator
-			accelRead();
-			
+		case active_hue: //read sensor and add it to the hue value of the lightingdesk
+			accelRead();		
 #ifdef DEBUG
 	printf("%d\t", map_x);
 	printf("%d\t", map_y);
 	printf("%d\n\r", map_z);
 #endif
 			//mapped raw value
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, AXIS, dataIn.intensity));
+			calcSensorVal = deskHue + AXIS;
+			fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, dataIn.saturation, dataIn.intensity));
 			break;
 
-		case 2: // read sensor and send to other actuator
-			dataOut.command = 3;
-			accelRead();
-			dataOut.saturation = AXIS; //sensor input
-			dataOut.destAddr = listeningPipes[localAddr];
-
-			radio.stopListening();
-			radio.openWritingPipe(dataIn.destAddr);//set destination address
-			radio.write(&dataOut, sizeof(dataOut));
+		case active_sat: // read sensor and add it to the saturation value of the desk
+			accelRead();		
 #ifdef DEBUG
-	printf("%ld", dataIn.destAddr);
-	printf("\n\rdata send: %d", dataOut.dataValue);
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
 #endif
-			radio.startListening();
-			break;
-
-		case 3: //receive sensor value and use for own actuator
-#ifdef DEBUG
-	printf("receiving address: %ld\n\r", dataIn.destAddr);
-	printf("received data: %d\n\r", dataIn.dataValue);
-#endif
-			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
-			break;
-		case 4:
-#ifdef DEBUG
-	Serial.print("reset node");
-#endif
-			//reset node
-		default:
-			//do nothing
+			//mapped raw value
+			
+			inBetween = deskSat + AXIS;
+			if (inBetween > 0 && inBetween < 255)
+				calcSensorVal = (uint8_t)inBetween;
+			if (inBetween < 0)
+				calcSensorVal = 0;
+			if (inBetween > 255)
+				calcSensorVal = 255;
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, calcSensorVal, dataIn.intensity));
 			break;
 			
-		FastLED.show();
-/* delay om uitvoering te vertragen tot 50Hz
- * uitvoering wordt vertraagd met 20 ms 
- * We gaan ervan uit dat al de rest wordt "instant" zordt uitgevoerd. 
+		case active_int: // read sensor and add it to the saturation value of the desk
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			inBetween = deskSat + AXIS;
+			if (inBetween > 0 && inBetween < 255)
+			calcSensorVal = (uint8_t)inBetween;
+			if (inBetween < 0)
+			calcSensorVal = 0;
+			if (inBetween > 255)
+			calcSensorVal = 255;
+			fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, calcSensorVal));
+			break;
+		
+		default:
+#ifdef DEBUG
+printf("case not implemented %d", dataIn.senCommand);
+#endif
+			break;			
+
+			FastLED.show();
+/* delay om uitvoering te vertragen tot 40Hz
+ * uitvoering wordt vertraagd met 25 ms 
+ * We gaan er van uit dat al de rest "instant" wordt uitgevoerd. 
  * Wanneer het programma werkt kan dit verfijnt worden
-*/
-		delay(20);
-	}// end switch
+ */
+#ifdef DEBUG
+printf("Display LED\n\r");
+#endif
+			delay(24);
+		}// end switch
+	}// end if
+	if(dataIn.destNode != localAddr){ //data comes from or is destined to other node
+		switch (dataIn.senCommand){
+		case active_hue: //read sensor and add it to the hue value of the lightingdesk			
+			
+			dataOut.senCommand = receive_hue;
+			accelRead();
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
+
+			radio.stopListening();
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			
+			break;
+
+		case active_sat: // read sensor and add it to the saturation value of the desk
+			dataOut.senCommand = receive_sat;
+			accelRead();
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
+
+			radio.stopListening();
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			break;
+			
+		case active_int: // read sensor and add it to the saturation value of the desk
+			dataOut.senCommand = receive_int;
+			accelRead();
+			dataOut.sensorVal = AXIS; //sensor input
+			dataOut.srcNode = localAddr;
+
+			radio.stopListening();
+			radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
+			radio.write(&dataOut, sizeof(dataOut));
+#ifdef DEBUG
+	printf("%ld", listeningPipes[dataIn.destNode]);
+	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+#endif
+			radio.startListening();
+
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
+			break;
+		
+		case receive_hue:
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, deskSat, deskInt));
+			break;
+			
+		case receive_sat:
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, calcSensorVal, deskHue));
+			break;
+			
+		case receive_int:
+			accelRead();		
+#ifdef DEBUG
+	printf("%d\t", map_x);
+	printf("%d\t", map_y);
+	printf("%d\n\r", map_z);
+#endif
+			//mapped raw value
+			calcSensorVal = deskHue + dataIn.sensorVal;
+			fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, calcSensorVal));
+			break;
+			
+#ifdef DEBUG
+	printf("Display LED\n\r");
+#endif
+
+		FastLED.show();
+/* delay om uitvoering te vertragen tot 40Hz
+ * uitvoering wordt vertraagd met 25 ms 
+ * We gaan er van uit dat al de rest "instant" wordt uitgevoerd. 
+ * Wanneer het programma werkt kan dit verfijnt worden
+ */
+		delay(24);
+		}// end switch
+	}//end else
 #endif //end poll
 } //end loop
 
@@ -372,10 +767,10 @@ void accelRead(void){
 	door de fromLow en fromHigh aan te passen veranderd de nauwkeurigheid
 	-2047 tot 2046 is de hoogste nauwkeurigheid en de kleinste verandering
 */
-  	mappedReadings[0] = map(accel.raw_x, MMA_lowerLimit, MMA_upperLimit, 0, 255);
-  	mappedReadings[1] = map(accel.raw_y, MMA_lowerLimit, MMA_upperLimit, 0, 255);
-  	mappedReadings[2] = map(accel.raw_z, MMA_lowerLimit, MMA_upperLimit, 0, 255);
-   }
+  	mappedReadings[0] = map(accel.raw_x, MMA_lowerLimit, MMA_upperLimit, -128, 127);
+  	mappedReadings[1] = map(accel.raw_y, MMA_lowerLimit, MMA_upperLimit, -128, 127);
+  	mappedReadings[2] = map(accel.raw_z, MMA_lowerLimit, MMA_upperLimit, -128, 127);
+}
 
 void nRF_IRQ() {
   noInterrupts();

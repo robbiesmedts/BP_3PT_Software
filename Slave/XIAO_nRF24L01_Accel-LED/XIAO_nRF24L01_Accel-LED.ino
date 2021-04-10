@@ -274,7 +274,7 @@ void loop() {
 		FastLED.show();
 	}//end fetch-command
 	
-#endif //endif CONTINIOUS
+#endif //end ifndef CONTINIOUS
 
 #endif //end INTERRUPT
 
