@@ -122,27 +122,40 @@ void send_reply(uint8_t mode_broadcast, uint8_t *p_uc_data, uint8_t *packet);
 /************************************************************************/
 /* Global variables                                                     */
 /************************************************************************/
-/* Data standard.
-   data communicated in this project follows the next structure to form an uniform protocol.
-   destAddr     //address (32bits) given by the command this is an receiving address or an destination address
-   dataValue    //variable (16bits) to save incoming and outgoing data
-   command      //commando (8bits) structured by command table
+typedef enum sensorCommand{
+  disabled = 0,
+  active_hue,
+  active_sat,
+  active_int, 
+  receive_hue,
+  receive_sat,
+  receive_int,
+  reset
+}e_command;
 
-   command table
-   0 = Stop command
-   1 = use sensor for own actuator
-   2 = send sensor value to other actuator
-   3 = receive sensor value for own actuator
-   4 = reset node
+/* Datapaket standaard.
+   datapaketten verzonden binnen dit project zullen dit formaat hanteren om een uniform systeem te vormen
+   srcNode    //Enumeration van de node waar de data van origineerd
+   destNode   //Enumeration van de node waar deze data voor bestemd is.
+   command      //commando (Enum) gestuctureerd volgens command table
+   intensity    //intensity of the LEDs
+   hue          //color of the LEDs transcoded in a hue
+   saturation   //saturation of the colors
+   sensorval    //sensor values to use in calculations sigend (8-bit, value tussen -128 tot 127)
 */
-struct dataStruct{
-	uint32_t destAddr;
-	uint16_t datavalue;
-	uint8_t command;
-}dataIn, dataOut;
+struct dataStruct {
+  uint8_t srcNode;
+  uint8_t destNode;
+  e_command senCommand;
+  uint8_t intensity;
+  uint8_t hue;
+  uint8_t saturation;
+  int8_t sensorVal;
+} dataIn, dataOut;
 
 static const uint32_t listeningPipes[6] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL, 0x3A3A3A0A}; //unieke adressen gebruikt door de nodes.
 static uint16_t artnetDmxAddress = 1;
+static const uint8_t nodes = 1; //number of sensor nodes
 
 uint8_t factory_mac [6] = {ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
 uint8_t factory_localIp [4] = {ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2, ETHERNET_CONF_IPADDR3};
@@ -153,7 +166,7 @@ uint8_t factory_subnetMask   [4] = {ETHERNET_CONF_NET_MASK0, ETHERNET_CONF_NET_M
 uint8_t factory_swin         [4] = {   0,   1,   2,   3};
 uint8_t factory_swout        [4] = {   0,   1,   2,   3};
 
-static const uint8_t nodes = 1; //number of sensor nodes
+
 uint8_t artnet_data_buffer[512];
 
 T_ArtNode ArtNode;

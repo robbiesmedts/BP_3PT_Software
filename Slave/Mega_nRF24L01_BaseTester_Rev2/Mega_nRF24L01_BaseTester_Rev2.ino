@@ -29,7 +29,8 @@ typedef enum sensorCommand : uint8_t{
   active_int, 
   receive_hue,
   receive_sat,
-  receive_int
+  receive_int,
+  reset
 }e_command;
 
 /* Datapaket standaard.

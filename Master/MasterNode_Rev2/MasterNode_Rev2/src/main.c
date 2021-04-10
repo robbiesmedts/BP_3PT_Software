@@ -48,191 +48,128 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-/************************************************************************/
 /*
  *	\brief Send commands in function of the received Art-Net data
  *
  * Art-Net functionality			                                    
  *	
- *	channel n: Dimmer Node 1
- *	channel n+1: General functionality Node 1
- *	
- * General functionality:
- *		0-10	| Node disabled
- *		11-20	| Sensor to own actuator
- *		21-30 	| Sensor to node w (dependable of source Node)
- *		31-40 	| Sensor to node x (dependable of source Node)
- *		41-50 	| Sensor to node y (dependable of source Node)
- *		51-60	| Sensor to node z (dependable of source Node)
- *		61-70	| Accel Tap
- *		71-80	| (future features)
- *		81-90	| External node input
- *		91-100	| Sensor feedback to lighting desk
- *		101-230	| Art-Net input
- *		231-255 | reset node (reset any saved sensor values and resets the actuator)
+ *	channel n: Wireless connectivity between nodes
+ *	channel n+1: Slave node 1 function
+ *	channel n+2: Hue
+ *	channel n+3: Saturation
+ *	channel n+4: Dimmer
+ *	channel n+5: Slave node 2 function
+ *	channel n+6: Hue
+ *	channel n+7: Saturation
+ *	channel n+8: Dimmer
  *	
 */
 static void artnetToCommand(void)
 {
-	uint8_t dmxValue = 0;
-	uint8_t currentNode = 1;
-
-	//array start at 0 so the dmx address must be lowered by 1 because Art-Net sends DMX data without zero byte
-	for(uint16_t i = artnetDmxAddress-1; i < (artnetDmxAddress + nodes - 1); i++)
+	uint8_t nodeFunction;
+	uint8_t currentNode = 0;
+	dataOut.srcNode = 0;
+//masterNode data - takes 1 channel starting at n
+/*	if (artnet_data_buffer[artnetDmxAddress-1]<){
+		// 
+	}
+*/
+	currentNode++;	
+//slaveNode data - takes 4 channels starting from n+1
+	for(uint16_t i = artnetDmxAddress; i < (artnetDmxAddress + nodes * 4); i++)
 	{
-		dmxValue = artnet_data_buffer[i];
-/************************************************************************/
-/* Node disabled                                                        */
-/************************************************************************/
-			if(dmxValue <= 10)
+		nodeFunction = artnet_data_buffer[i++]; //use i, then increment
+		dataOut.hue = artnet_data_buffer[i++];
+		dataOut.saturation = artnet_data_buffer[i++];
+		dataOut.intensity = artnet_data_buffer[i++];
+#ifdef _DEBUG_
+	printf("HSV %d, %d, %d\r\n", dataOut.hue, dataOut.saturation, dataOut.intensity);
+#endif		
+		if (nodeFunction <= 30)
+		{
+			//disabled
+			nRF24_openWritingPipe(listeningPipes[currentNode]);
+			dataOut.destNode = currentNode;
+			dataOut.senCommand = disabled;
+			
+			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
-					nRF24_openWritingPipe(listeningPipes[currentNode]);
-					dataOut.command = 0;
-					nRF24_write(&dataOut, sizeof(dataOut));
-#ifdef _DEBUG_
-					//printf("disable node %d\r\n", currentNode);
-#endif
-			}
-/************************************************************************/
-/* Read own sensor                                                      */
-/************************************************************************/
-			else if(dmxValue >= 11 && dmxValue <= 20)
-			{		
-					nRF24_openWritingPipe(listeningPipes[currentNode]);
-					dataOut.command = 1;
-					nRF24_write(&dataOut, sizeof(dataOut));
-#ifdef _DEBUG_
-					printf("Node %d read own sensor\r\n", currentNode);
-#endif
-			}
-/************************************************************************/
-/* Send sensor to other node                                            */
-/************************************************************************/
-/*			else if(dmxValue >= 21 && dmxValue <= 30)
-			{
-				//Sensor to Node n
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 2;
-				if (currentNode == 1)
-				{
-					dataOut.destAddr = listeningPipes[2];
-				}
-				else
-				{
-					dataOut.destAddr = listeningPipes[1];
-				}
-				nRF24_write(&dataOut, sizeof(dataOut));
-#ifdef _DEBUG_
-				printf("Send data from node %d to other node\r\n", currentNode);
-#endif
-			}
-			else if(dmxValue >= 31 && dmxValue <= 40)
-			{
-				//Sensor to Node n+1
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 2;
-				if (currentNode == 1 || currentNode == 2)
-				{
-					dataOut.destAddr = listeningPipes[3];
-				}
-				else
-				{
-					dataOut.destAddr = listeningPipes[2];
-				}
-				nRF24_write(&dataOut, sizeof(dataOut));
-#ifdef _DEBUG_
-				printf("Send data from node %d to other node\r\n", currentNode);
-#endif
+				printf("transmission failed");
 			}
 			
-			else if(dmxValue >= 41 && dmxValue <= 50)
-			{
-				//Sensor to Node n+2
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 2;
-				if (currentNode == 4 || currentNode == 5)
-				{
-					dataOut.destAddr = listeningPipes[3];
-				}
-				else
-				{
-					dataOut.destAddr = listeningPipes[4];
-				}
-				nRF24_write(&dataOut, sizeof(dataOut));
 #ifdef _DEBUG_
-				printf("Send data from node %d to other node\r\n", currentNode);
-#endif				
+	printf("disable sensor node %d\r\n", currentNode);
+#endif			
+		}
+		if (nodeFunction >= 31 && nodeFunction <= 60)
+		{
+			//active_hue
+			nRF24_openWritingPipe(listeningPipes[currentNode]);
+			dataOut.destNode = currentNode;
+			dataOut.senCommand = active_hue;
+			
+			if(!nRF24_write(&dataOut, sizeof(dataOut)))
+			{
+				printf("transmission failed");
 			}
 			
-			else if(dmxValue >= 51 && dmxValue <= 60)
-			{
-				//Sensor to node n+3
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 2;
-				if (currentNode == 5)
-				{
-					dataOut.destAddr = listeningPipes[4];
-				}
-				else
-				{
-					dataOut.destAddr = listeningPipes[5];
-				}
-				nRF24_write(&dataOut, sizeof(dataOut));
 #ifdef _DEBUG_
-				printf("Send data from node %d to other node\r\n", currentNode);
+	printf("Sensor active_hue node %d\r\n", currentNode);
 #endif
-			}*/
-/*			else if(61 < dmxValue < 80)
+		}
+		if (nodeFunction >= 61 && nodeFunction <= 90)
+		{
+			//active_sat
+			nRF24_openWritingPipe(listeningPipes[currentNode]);
+			dataOut.destNode = currentNode;
+			dataOut.senCommand = active_sat;
+			
+			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
-				//voor extra nodes
-			}*/
-/*			else if (dmxValue >= 81 && dmxValue <= 90)
-			{
-				//send nothing to the node to avoid command collisions with the sensor data
-			}*/
-/*			else if (dmxValue >= 91 && dmxValue <= 100)
-			{
-				//send sensorData to Midi node for feedback to audio, light or video
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 2;
-				dataOut.destAddr = listeningPipes[6];
-				nRF24_write(&dataOut, sizeof(dataOut));
-#ifdef _DEBUG_
-				printf("Send data from node %d to Midi node\r\n", currentNode);
-#endif				
-			}*/
-/************************************************************************/
-/* Use DMX value                                                        */
-/************************************************************************/
-			else if(dmxValue >= 101 && dmxValue <= 230)
-			{
-				//desk -> actuator
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				//calculating and remapping received DMX values
-				uint8_t m_dmx = dmxValue - 101;
-				m_dmx = map(m_dmx, 0, 129, 0, 255);
-				
-				dataOut.datavalue = m_dmx;
-				dataOut.command = 3;
-#ifdef _DEBUG_
-				printf("connect desk to node %d for %d\r\n", currentNode, m_dmx);
-#endif // _DEBUG_
-						
+				printf("transmission failed");
 			}
-/************************************************************************/
-/* Reset Node		                                                    */
-/************************************************************************/
-/*			else if(dmxValue >= 231 && dmxValue <= 255)
-			{
-				//reset Node
-				nRF24_openWritingPipe(listeningPipes[currentNode]);
-				dataOut.command = 4;
-				nRF24_write(&dataOut, sizeof(dataOut));
+			
 #ifdef _DEBUG_
-				printf("Reset node %d\r\n", currentNode);
+	printf("Sensor active_sat node %d\r\n", currentNode);
 #endif
-			}//end if structure*/
-		//printf("current node: %d\n\r", currentNode);	
+		}
+		if (nodeFunction >= 91 && nodeFunction <= 120)
+		{
+			//active_int
+			nRF24_openWritingPipe(listeningPipes[currentNode]);
+			dataOut.destNode = currentNode;
+			dataOut.senCommand = active_sat;
+			
+			if(!nRF24_write(&dataOut, sizeof(dataOut)))
+			{
+				printf("transmission failed");
+			}
+			
+#ifdef _DEBUG_
+	printf("Sensor active_sat node %d\r\n", currentNode);
+#endif
+		}
+/*		if (nodeFunction >= 121 && nodeFunction <= 150)
+		{
+			//receive_hue
+		}
+		if (nodeFunction >= 151 && nodeFunction <= 180)
+		{
+			//receive_sat
+		}
+		if (nodeFunction >= 181 && nodeFunction <= 210)
+		{
+			//receive_int
+		}
+		if (nodeFunction >= 211)
+		{
+			//reset
+		}*/
+		else{//not yet implemented	
+#ifdef _DEBUG_
+	printf("function not yet implemented\r\n", currentNode);
+#endif		
+		}
 		currentNode++;
 	}//end for-loop
 }
