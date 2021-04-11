@@ -51,7 +51,7 @@ volatile uint8_t gs_uc_eth_buffer_rx[GMAC_FRAME_LENTGH_MAX];
 volatile uint8_t gs_uc_eth_buffer_tx[GMAC_FRAME_LENTGH_MAX];
 
 /** Buffer for Artnet DMX data */
-uint8_t artnet_data_buffer[512];
+volatile uint8_t artnet_data_buffer[512];
 
 uint32_t ul_frm_size_rx, ul_frm_size_tx;
 volatile uint32_t ul_delay;

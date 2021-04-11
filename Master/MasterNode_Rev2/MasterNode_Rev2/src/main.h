@@ -110,13 +110,11 @@ typedef enum artnet_packet_type_e {
 /* Function prototypes                                                  */
 /************************************************************************/
 long map(long x, long in_min, long in_max, long out_min, long out_max);
-void handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size);
+bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size);
 T_ArtPacketType get_packet_type(uint8_t *packet);
 void fill_ArtNode(T_ArtNode *node);
 void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node);
-void handle_dmx(T_ArtDmx *packet);
-void handle_poll(T_ArtPoll *packet, uint8_t *p_uc_data);
-void handle_address(T_ArtAddress *packet, uint8_t *p_uc_data);
+void handle_address(p_T_ArtAddress *packet, uint8_t *p_uc_data);
 void send_reply(uint8_t mode_broadcast, uint8_t *p_uc_data, uint8_t *packet);
 
 /************************************************************************/
@@ -166,8 +164,6 @@ uint8_t factory_subnetMask   [4] = {ETHERNET_CONF_NET_MASK0, ETHERNET_CONF_NET_M
 uint8_t factory_swin         [4] = {   0,   1,   2,   3};
 uint8_t factory_swout        [4] = {   0,   1,   2,   3};
 
-
-uint8_t artnet_data_buffer[512];
 
 T_ArtNode ArtNode;
 T_ArtPollReply ArtPollReply;
