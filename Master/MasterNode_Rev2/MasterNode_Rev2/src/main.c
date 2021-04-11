@@ -53,11 +53,56 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *
  * Art-Net functionality			                                    
  *	
- *	(channel n: Wireless connectivity between nodes)
+ *	channel n: Wireless connectivity between nodes (not implemented)
+ *		 0-20	: Each node functions for itself	
  *	channel n+1: Slave node 1 function
+ *		 0-30   : Sensor disabled
+ *		 31-60  : Sensor active on hue
+ *		 61-90  : Sensor active on saturation
+ *		 91-120 : Sensor active on intensity
+ *		 121-150: Sensor disabled, receiving data to hue (not implemented)
+ *		 151-180: Sensor disabled, receiving data to saturation (not implemented)
+ *		 181-210: Sensor disabled, receiving data to intensity (not implemented)
+ *		 211-255: Reset node (not implemented)
  *	channel n+2: Hue
  *	channel n+3: Saturation
  *	channel n+4: Dimmer
+ *	channel n+5: Slave node 1 function
+ *		 0-30   : Sensor disabled
+ *		 31-60  : Sensor active on hue
+ *		 61-90  : Sensor active on saturation
+ *		 91-120 : Sensor active on intensity
+ *		 121-150: Sensor disabled, receiving data to hue (not implemented)
+ *		 151-180: Sensor disabled, receiving data to saturation (not implemented)
+ *		 181-210: Sensor disabled, receiving data to intensity (not implemented)
+ *		 211-255: Reset node (not implemented)
+ *	channel n+6: Hue
+ *	channel n+7: Saturation
+ *	channel n+8: Dimmer
+ *	channel n+9: Slave node 1 function
+ *		 0-30   : Sensor disabled
+ *		 31-60  : Sensor active on hue
+ *		 61-90  : Sensor active on saturation
+ *		 91-120 : Sensor active on intensity
+ *		 121-150: Sensor disabled, receiving data to hue (not implemented)
+ *		 151-180: Sensor disabled, receiving data to saturation (not implemented)
+ *		 181-210: Sensor disabled, receiving data to intensity (not implemented)
+ *		 211-255: Reset node (not implemented)
+ *	channel n+10: Hue
+ *	channel n+11: Saturation
+ *	channel n+12: Dimmer
+ *	channel n+13: Slave node 1 function
+ *		 0-30   : Sensor disabled
+ *		 31-60  : Sensor active on hue
+ *		 61-90  : Sensor active on saturation
+ *		 91-120 : Sensor active on intensity
+ *		 121-150: Sensor disabled, receiving data to hue (not implemented)
+ *		 151-180: Sensor disabled, receiving data to saturation (not implemented)
+ *		 181-210: Sensor disabled, receiving data to intensity (not implemented)
+ *		 211-255: Reset node (not implemented)
+ *	channel n+14: Hue
+ *	channel n+15: Saturation
+ *	channel n+16: Dimmer
  *	
 */
 static void artnetToCommand(void)
@@ -65,10 +110,47 @@ static void artnetToCommand(void)
 	uint8_t nodeFunction;
 	uint8_t currentNode = 0;
 	dataOut.srcNode = 0;
+	uint8_t masterData = artnet_data_buffer[artnetDmxAddress-1];
 	uint16_t i = artnetDmxAddress -1; //Array starts at 0 but Art-Net data array had the first data byte at 0
 //masterNode data - takes 1 channel starting at n
-/*	if (artnet_data_buffer[artnetDmxAddress-1]<){
-		// 
+/*	if (masterData<=20){
+		Each node to itself 
+	}
+	if (masterData>=21 && masterData<=40){
+		//Node 2 -> 1
+	}
+	if (masterData>=41 && masterData<=60){
+		//Node 3 -> 1
+	}
+	if (masterData>=61 && masterData<=80){
+		//Node 4 -> 1
+	}
+	if (masterData>=81 && masterData<=100){
+		//Node 1 -> 2
+	}
+	if (masterData>=101 && masterData<=120){
+		//Node 3 -> 2
+	}
+	if (masterData>=121 && masterData<=140){
+		//Node 4 -> 2
+	}
+	if (masterData>=141 && masterData<=160){
+		//Node 1 -> 3
+	}
+	if (masterData>=161 && masterData<=180){
+		//Node 2 -> 3
+	}
+	if (masterData>=181 && masterData<=200){
+		//Node 4 -> 3
+	}
+	if (masterData>=201 && masterData<=220){
+		//Node 1 -> 4
+	}
+	if (masterData>=221 && masterData<=240){
+		//Node 2 -> 4
+	}
+	if (masterData>=241 && masterData<=255){
+		//Node 3 -> 4
 	}
 */
 	currentNode++;	
