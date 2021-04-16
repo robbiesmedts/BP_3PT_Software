@@ -59,6 +59,7 @@ RF24 radio(9, 10); //CE, CSN
 const byte localAddr = 0; //node 0 is masternode
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL};
 
+const uint8_t testNode = 2;
 int interrupt_pin = 2;
 
 void setup() {
@@ -98,14 +99,14 @@ void loop() {
    
 // Testing basic HSI capabilities node
 
-  radio.openWritingPipe(listeningPipes[1]);
+  radio.openWritingPipe(listeningPipes[testNode]);
   dataOut.srcNode = 0;
-  dataOut.destNode = 1;
+  dataOut.destNode = testNode;
   dataOut.senCommand = disabled;
   
 #ifdef DEBUG
   Serial.print("Commando 0 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
+  printf("%ld\n\r", listeningPipes[dataOut.destNode]);
   Serial.println("increasing Intensity");
 #endif
   //increasing intensity
@@ -146,15 +147,15 @@ void loop() {
 
 #ifdef DEBUG
   Serial.print("Commando 1 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
+  printf("%ld\n\r", listeningPipes[dataOut.destNode]);
   Serial.println("Activate sensor -> Hue");
   Serial.println("Hue 50%, Saturation 75%, Intensity 100%");
   Serial.println("Active for 20s");
 #endif
 //activate sensor -> Hue
-  radio.openWritingPipe(listeningPipes[1]);
+  radio.openWritingPipe(listeningPipes[testNode]);
   dataOut.srcNode = 0;
-  dataOut.destNode = 1;
+  dataOut.destNode = testNode;
   dataOut.senCommand = active_hue;
   dataOut.hue = 128;
   dataOut.intensity = 255;
@@ -170,15 +171,15 @@ void loop() {
 
 #ifdef DEBUG
   Serial.print("Commando 1 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
+  printf("%ld\n\r", listeningPipes[dataOut.destNode]);
   Serial.println("Activate sensor -> Saturation");
   Serial.println("Hue 50%, Saturation 75%, Intensity 100%");
   Serial.println("Active for 20s");
 #endif
 //activate sensor -> Saturation
-  radio.openWritingPipe(listeningPipes[1]);
+  radio.openWritingPipe(listeningPipes[testNode]);
   dataOut.srcNode = 0;
-  dataOut.destNode = 1;
+  dataOut.destNode = testNode;
   dataOut.senCommand = active_sat;
   dataOut.hue = 128;
   dataOut.intensity = 255;
@@ -194,15 +195,15 @@ void loop() {
 
 #ifdef DEBUG
   Serial.print("Commando 1 send to address: ");
-  printf("%ld\n\r", listeningPipes[1]);
+  printf("%ld\n\r", listeningPipes[dataOut.destNode]);
   Serial.println("Activate sensor -> Intensity");
   Serial.println("Hue 25%, Saturation 75%, Intensity = 50%");
   Serial.println("Active for 20s");
 #endif
 //activate sensor -> intensity
-  radio.openWritingPipe(listeningPipes[1]);
+  radio.openWritingPipe(listeningPipes[testNode]);
   dataOut.srcNode = 0;
-  dataOut.destNode = 1;
+  dataOut.destNode = testNode;
   dataOut.senCommand = active_int;
   dataOut.hue = 64;
   dataOut.saturation = 192;
