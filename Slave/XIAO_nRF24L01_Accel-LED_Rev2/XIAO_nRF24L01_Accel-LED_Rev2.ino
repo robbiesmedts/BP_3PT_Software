@@ -53,7 +53,7 @@
 #endif
 
 /*Command enumeration*/
-typedef enum sensorCommand{
+typedef enum sensorCommand : uint8_t{
   disabled = 0,
   active_hue,
   active_sat,
@@ -86,7 +86,7 @@ struct dataStruct {
 
 /*Variables for the nRF module*/
 RF24 radio(7, 6, 5000000); //CE, CSN
-const byte localAddr = 1;
+const byte localAddr = 2;
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL};
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
@@ -94,7 +94,7 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 MMA8452Q accel;
 int8_t mappedReadings[2];
 /*Variables for the LED*/
-#define NUM_LEDS 10
+#define NUM_LEDS 13
 #define DATA_PIN 1
 #define numReadings 10
 
@@ -125,8 +125,8 @@ void setup() {
 
 #ifdef DEBUG
   SerialUSB.begin(115200);
-  //while(!Serial);
-  //SerialUSB.println("XIAO startup");
+  while(!Serial);
+  SerialUSB.println("XIAO startup");
   printf_begin();
 #endif
 
@@ -144,7 +144,7 @@ void setup() {
 
   //print all settings of nRF24L01
 #ifdef DEBUG
-  radio.printDetails();
+  SerialUSB.printf("local address: %ld\n\r", listeningPipes[localAddr]);
   SerialUSB.printf("data size: %d bytes\n\r", sizeof(dataStruct));
 #endif
 
