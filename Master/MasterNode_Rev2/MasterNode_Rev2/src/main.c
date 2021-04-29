@@ -17,7 +17,7 @@ extern "C" {
 /// @endcond
 
 
-#ifdef _DEBUG_
+
 /**
  *  \brief Configure UART console.
  */
@@ -38,7 +38,6 @@ static void configure_console(void)
 	sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
 	stdio_serial_init(CONF_UART, &uart_serial_options);
 }
-#endif
 
 /************************************************************************/
 /*    Map function form Arduino                                         */
@@ -155,12 +154,12 @@ static void artnetToCommand(void)
 */
 	currentNode++;	
 //slaveNode data - takes 4 channels starting from n+1
-	for(i = artnetDmxAddress; i < (artnetDmxAddress + nodes * 4); i++)
+	for(i = artnetDmxAddress; i < (artnetDmxAddress + (nodes * 4)); i++)
 	{
 		nodeFunction = artnet_data_buffer[i++]; //use i, then increment
 		dataOut.hue = artnet_data_buffer[i++];
 		dataOut.saturation = artnet_data_buffer[i++];
-		dataOut.intensity = artnet_data_buffer[i++];
+		dataOut.intensity = artnet_data_buffer[i];
 #ifdef _DEBUG_
 	printf("Node %d | HSV %d, %d, %d\r\n", currentNode, dataOut.hue, dataOut.saturation, dataOut.intensity);
 #endif		
@@ -173,7 +172,9 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
@@ -189,7 +190,9 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
@@ -205,7 +208,9 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
@@ -221,7 +226,9 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
@@ -255,12 +262,10 @@ int main (void)
 	sysclk_init();
 	board_init();
 	
-#ifdef _DEBUG_
 	/* Initialize the console UART. */
 	configure_console();
-#endif
-
 	puts(STRING_HEADER);
+
 	
 	fill_ArtNode(&ArtNode);
 	fill_ArtPollReply(&ArtPollReply, &ArtNode);	
@@ -322,7 +327,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 		p_ip_header_t p_ip = (p_ip_header_t) (p_uc_data+ ETH_HEADER_SIZE);
 		if (p_ip->ip_p == IP_PROT_UDP){
 			/*Check on added Art-Net header*/
-			//printf("M: UDP\r\n");
+#ifdef _DEBUG_
+	printf("M: UDP\r\n");
+#endif
 /************************************************************************/
 /* Controle op Art-Net anders uitvoeren                                 */
 /************************************************************************/
@@ -337,7 +344,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						printf("M: DMX\r\n");
+#ifdef _DEBUG_
+	printf("M: DMX\r\n");
+#endif
 						if(p_artDmx_packet->SubUni == ArtNode.swout[0])
 						{
 							//memcpy (artnet_data_buffer, (uint8_t *)packet->Data, MaxDataLength);
@@ -351,16 +360,18 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						printf("M: ArtPoll\r\n");
+#ifdef _DEBUG_
+	printf("M: ArtPoll\r\n");
+#endif
 						//handle_poll(p_artPoll_packet, p_uc_data);
 						if((p_artPoll_packet->Flags & 8) == 1) // controller say: send unicast reply
 						{
-							send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
+							//send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
 							//printf("M: ArtPollReply Unicast\r\n");
 						}
 						else // controller say: send broadcast reply
 						{
-							send_reply(BROADCAST, p_uc_data, (uint8_t *)&ArtPollReply);
+							//send_reply(BROADCAST, p_uc_data, (uint8_t *)&ArtPollReply);
 							//printf("M: ArtPollReply Broadcast\r\n");
 						}
 						return 0;
@@ -378,7 +389,7 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						handle_address(p_artAdress_packet, p_uc_data);
+						//handle_address(p_artAdress_packet, p_uc_data);
 						return 0;
 					//}
 				}
@@ -395,7 +406,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 		return 0;
 	}
 	else{
-		printf("=== Default w_pkt_format= 0x%X===\n\r", eth_pkt_format);
+#ifdef _DEBUG_
+	printf("=== Default w_pkt_format= 0x%X===\n\r", eth_pkt_format);
+#endif
 		return 0;	
 	}
 	return 1;
@@ -500,7 +513,9 @@ void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
 void handle_address(p_T_ArtAddress *packet, uint8_t *p_uc_data) //Not properly implemented yet
 {
 	send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
+#ifdef _DEBUG_
 	printf("M: Address unicast\r\n");
+#endif
 }
 
 T_ArtPacketType get_packet_type(uint8_t *packet) //this get artnet packet type
@@ -554,16 +569,18 @@ void send_reply(uint8_t mode_broadcast, uint8_t *p_uc_data, uint8_t *packet)
 		}
 		ul_rc = gmac_dev_write(&gs_gmac_dev, *p_uc_data, GMAC_QUE_0, ul_size, NULL);
 	}
+	
 #ifdef _DEBUG_
 	if (ul_rc != GMAC_OK)
 	{
-		printf("E: ArtPollReply not send");
+	printf("E: ArtPollReply not send");
 	}
 	else
 	{
-		printf("M: ArtPollReply send\r\n");
+	printf("M: ArtPollReply send\r\n");
 	}
-#endif	
+#endif
+	
 }
 
 /// @cond 0

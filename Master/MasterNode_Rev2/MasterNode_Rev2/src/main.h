@@ -19,12 +19,12 @@
 
 
 
-#ifdef _DEBUG_
+
 #define STRING_EOL    "\r"
 #define STRING_HEADER "-- MasterNode_Rev0-1 --\r\n" \
 "-- "BOARD_NAME" --\r\n" \
 "-- Compiled: "__DATE__" "__TIME__" --"STRING_EOL
-#endif
+
 
 /************************************************************************/
 /* Definitions                                                          */
@@ -153,7 +153,7 @@ struct dataStruct {
 
 static const uint32_t listeningPipes[6] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL, 0x3A3A3A0A}; //unieke adressen gebruikt door de nodes.
 static uint16_t artnetDmxAddress = 1;
-static const uint8_t nodes = 1; //number of sensor nodes
+static const uint8_t nodes = 4; //number of sensor nodes
 
 uint8_t factory_mac [6] = {ETHERNET_CONF_ETHADDR0, ETHERNET_CONF_ETHADDR1, ETHERNET_CONF_ETHADDR2, ETHERNET_CONF_ETHADDR3, ETHERNET_CONF_ETHADDR4, ETHERNET_CONF_ETHADDR5};
 uint8_t factory_localIp [4] = {ETHERNET_CONF_IPADDR0, ETHERNET_CONF_IPADDR1, ETHERNET_CONF_IPADDR2, ETHERNET_CONF_IPADDR3};
