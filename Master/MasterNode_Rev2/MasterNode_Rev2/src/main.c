@@ -66,7 +66,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+2: Hue
  *	channel n+3: Saturation
  *	channel n+4: Dimmer
- *	channel n+5: Slave node 1 function
+ *	channel n+5: Slave node 2 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -78,7 +78,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+6: Hue
  *	channel n+7: Saturation
  *	channel n+8: Dimmer
- *	channel n+9: Slave node 1 function
+ *	channel n+9: Slave node 3 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -90,7 +90,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+10: Hue
  *	channel n+11: Saturation
  *	channel n+12: Dimmer
- *	channel n+13: Slave node 1 function
+ *	channel n+13: Slave node 4 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -106,6 +106,10 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 */
 static void artnetToCommand(void)
 {
+	__disable_irq(); // Set PRIMASK
+
+	//NVIC_DisableIRQ(GMAC_IRQn);
+	
 	uint8_t nodeFunction;
 	uint8_t currentNode = 0;
 	dataOut.srcNode = 0;
@@ -172,16 +176,16 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
-				#ifdef _DEBUG_
-				printf("transmission failed\n\r");
-				#endif
+#ifdef _DEBUG_
+	printf("transmission failed\n\r");
+#endif
 			}
 			
 #ifdef _DEBUG_
 	printf("disable sensor node %d\r\n", currentNode);
 #endif			
 		}
-		if (nodeFunction >= 31 && nodeFunction <= 60)
+		else if (nodeFunction >= 31 && nodeFunction <= 60)
 		{
 			//active_hue
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -199,7 +203,7 @@ static void artnetToCommand(void)
 	printf("Sensor active_hue node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 61 && nodeFunction <= 90)
+		else if (nodeFunction >= 61 && nodeFunction <= 90)
 		{
 			//active_sat
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -217,12 +221,12 @@ static void artnetToCommand(void)
 	printf("Sensor active_sat node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 91 && nodeFunction <= 120)
+		else if (nodeFunction >= 91 && nodeFunction <= 120)
 		{
 			//active_int
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
 			dataOut.destNode = currentNode;
-			dataOut.senCommand = active_sat;
+			dataOut.senCommand = active_int;
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
@@ -235,7 +239,7 @@ static void artnetToCommand(void)
 	printf("Sensor active_sat node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 121 && nodeFunction <= 150)
+		else if (nodeFunction >= 121 && nodeFunction <= 150)
 		{
 			//receive_hue
 		}
@@ -254,6 +258,9 @@ static void artnetToCommand(void)
 		
 		currentNode++;
 	}//end for-loop
+	__enable_irq(); // Clear PRIMASK
+	//NVIC_EnableIRQ(GMAC_IRQn);
+
 }
 
 int main (void)
@@ -266,9 +273,9 @@ int main (void)
 	configure_console();
 	puts(STRING_HEADER);
 
-	
+	//functies zijn overbodig omdat feedback niet gegeven kan worden
 	fill_ArtNode(&ArtNode);
-	fill_ArtPollReply(&ArtPollReply, &ArtNode);	
+	//fill_ArtPollReply(&ArtPollReply, &ArtNode);	
 
 	if (!init_gmac_ethernet())
 	{
@@ -302,10 +309,11 @@ int main (void)
 		if (GMAC_OK == read_dev_gmac()) {
 			if (ul_frm_size_rx > 0) {
 				// Handle input frame
-				if(handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx))
+				if(handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx)){
 					artnetToCommand();
-			}//end of process
-		}
+				}//end handle 
+			}//end of framesize
+		}//end read_GMAC
 	}//end of loop
 }//end of program
 
@@ -319,7 +327,7 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
 	p_T_ArtPoll p_artPoll_packet = (p_T_ArtPoll) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 	p_T_ArtDmx p_artDmx_packet = (p_T_ArtDmx) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
-	p_T_ArtAddress p_artAdress_packet = (p_T_ArtAddress) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	//p_T_ArtAddress p_artAdress_packet = (p_T_ArtAddress) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 	uint16_t eth_pkt_format = SWAP16(p_eth->et_protlen);
 	uint32_t hdr_len = ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + UDP_HEADER_SIZE;
 	
@@ -471,7 +479,7 @@ void fill_ArtNode(T_ArtNode *node)
 	node->swremote   = 0;
 	node->style      = 0;        // StNode style - A DMX to/from Art-Net device
 }
-
+/*
 void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
 {
 	//fill to 0's
@@ -509,7 +517,7 @@ void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
 	poll_reply->SwRemote        = node->swremote;
 	poll_reply->Style           = node->style;
 } 
-
+*/
 void handle_address(p_T_ArtAddress *packet, uint8_t *p_uc_data) //Not properly implemented yet
 {
 	send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
