@@ -36,7 +36,7 @@
         Enables the interrupt sequence so the nRF module alerts the controller if data is available.
         If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
-#define DEBUG
+//#define DEBUG
 //#define CONTINIOUS
 #define INTERRUPT
 
@@ -93,7 +93,7 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 MMA8452Q accel;
 int8_t mappedReadings[2];
 /*Variables for the LED*/
-#define NUM_LEDS 10
+#define NUM_LEDS 19
 #define DATA_PIN 5
 #define numReadings 6
 

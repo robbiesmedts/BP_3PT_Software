@@ -67,7 +67,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+2: Hue
  *	channel n+3: Saturation
  *	channel n+4: Dimmer
- *	channel n+5: Slave node 1 function
+ *	channel n+5: Slave node 2 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -79,7 +79,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+6: Hue
  *	channel n+7: Saturation
  *	channel n+8: Dimmer
- *	channel n+9: Slave node 1 function
+ *	channel n+9: Slave node 3 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -91,7 +91,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
  *	channel n+10: Hue
  *	channel n+11: Saturation
  *	channel n+12: Dimmer
- *	channel n+13: Slave node 1 function
+ *	channel n+13: Slave node 4 function
  *		 0-30   : Sensor disabled
  *		 31-60  : Sensor active on hue
  *		 61-90  : Sensor active on saturation
@@ -155,12 +155,12 @@ static void artnetToCommand(void)
 */
 	currentNode++;	
 //slaveNode data - takes 4 channels starting from n+1
-	for(i = artnetDmxAddress; i < (artnetDmxAddress + nodes * 4); i++)
+	for(i = artnetDmxAddress; i < (artnetDmxAddress + (nodes * 4)); i++)
 	{
 		nodeFunction = artnet_data_buffer[i++]; //use i, then increment
 		dataOut.hue = artnet_data_buffer[i++];
 		dataOut.saturation = artnet_data_buffer[i++];
-		dataOut.intensity = artnet_data_buffer[i++];
+		dataOut.intensity = artnet_data_buffer[i];
 #ifdef _DEBUG_
 	printf("Node %d | HSV %d, %d, %d\r\n", currentNode, dataOut.hue, dataOut.saturation, dataOut.intensity);
 #endif		

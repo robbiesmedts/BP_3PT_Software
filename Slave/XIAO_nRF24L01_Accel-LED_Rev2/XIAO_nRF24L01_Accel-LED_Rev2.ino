@@ -86,7 +86,7 @@ struct dataStruct {
 
 /*Variables for the nRF module*/
 RF24 radio(7, 6, 5000000); //CE, CSN
-const byte localAddr = 2;
+const byte localAddr = 4;
 const uint32_t listeningPipes[5] = {0x3A3A3AA1UL, 0x3A3A3AB1UL, 0x3A3A3AC1UL, 0x3A3A3AD1UL, 0x3A3A3AE1UL};
 bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 
@@ -94,7 +94,7 @@ bool b_tx_ok, b_tx_fail, b_rx_ready = 0;
 MMA8452Q accel;
 int8_t mappedReadings[2];
 /*Variables for the LED*/
-#define NUM_LEDS 13
+#define NUM_LEDS 14
 #define DATA_PIN 1
 #define numReadings 10
 
@@ -396,9 +396,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case active_hue: //read sensor and add it to the hue value of the lightingdesk
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 				inBetween = deskHue + AXIS;
@@ -415,9 +415,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case active_sat: // read sensor and add it to the saturation value of the desk
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 			
@@ -435,9 +435,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case active_int: // read sensor and add it to the saturation value of the desk
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 				inBetween = deskInt + AXIS;
@@ -453,7 +453,7 @@ printf("case not implemented %d", dataIn.senCommand);
 		
 			default:
 #ifdef DEBUG
-printf("case not implemented %d", dataIn.senCommand);
+SerialUSB.printf("case not implemented %d", dataIn.senCommand);
 #endif
 				break;			
 			}// end switch
@@ -478,8 +478,8 @@ printf("case not implemented %d", dataIn.senCommand);
 				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
 				radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	printf("%ld", listeningPipes[dataIn.destNode]);
-	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+	SerialUSB.printf("%ld", listeningPipes[dataIn.destNode]);
+	SerialUSB.printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
 				radio.startListening();
 
@@ -497,8 +497,8 @@ printf("case not implemented %d", dataIn.senCommand);
 				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
 				radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	printf("%ld", listeningPipes[dataIn.destNode]);
-	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+	SerialUSB.printf("%ld", listeningPipes[dataIn.destNode]);
+	SerialUSB.printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
 				radio.startListening();
 
@@ -515,8 +515,8 @@ printf("case not implemented %d", dataIn.senCommand);
 				radio.openWritingPipe(listeningPipes[dataIn.destNode]);//set destination address
 				radio.write(&dataOut, sizeof(dataOut));
 #ifdef DEBUG
-	printf("%ld", listeningPipes[dataIn.destNode]);
-	printf("\n\rdata send: %d\n\r", dataOut.saturation);
+	SerialUSB.printf("%ld", listeningPipes[dataIn.destNode]);
+	SerialUSB.printf("\n\rdata send: %d\n\r", dataOut.saturation);
 #endif
 				radio.startListening();
 
@@ -526,9 +526,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case receive_hue:
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 				calcSensorVal = deskHue + dataIn.sensorVal;
@@ -538,9 +538,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case receive_sat:
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 				calcSensorVal = deskHue + dataIn.sensorVal;
@@ -550,9 +550,9 @@ printf("case not implemented %d", dataIn.senCommand);
 			case receive_int:
 				accelRead();		
 #ifdef DEBUG
-	printf("%d\t", map_x);
-	printf("%d\t", map_y);
-	printf("%d\n\r", map_z);
+	SerialUSB.printf("%d\t", map_x);
+	SerialUSB.printf("%d\t", map_y);
+	SerialUSB.printf("%d\n\r", map_z);
 #endif
 				//mapped raw value
 				calcSensorVal = deskHue + dataIn.sensorVal;
