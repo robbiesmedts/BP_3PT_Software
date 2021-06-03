@@ -19,7 +19,8 @@ extern uint32_t ul_frm_size_rx, ul_frm_size_tx;
 extern gmac_device_t gs_gmac_dev;
 extern volatile uint8_t gs_uc_eth_buffer_rx[GMAC_FRAME_LENTGH_MAX];
 extern volatile uint8_t gs_uc_eth_buffer_tx[GMAC_FRAME_LENTGH_MAX];
-extern volatile uint8_t artnet_data_buffer[512];
+//extern volatile uint8_t artnet_data_buffer[512];
+//extern uint8_t artnet_data_buffer[512];
 extern uint8_t gs_uc_ip_address[];
 
 uint32_t read_dev_gmac(void);

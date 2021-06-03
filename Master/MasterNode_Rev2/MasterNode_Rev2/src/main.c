@@ -17,7 +17,7 @@ extern "C" {
 /// @endcond
 
 
-#ifdef _DEBUG_
+
 /**
  *  \brief Configure UART console.
  */
@@ -38,7 +38,6 @@ static void configure_console(void)
 	sysclk_enable_peripheral_clock(CONSOLE_UART_ID);
 	stdio_serial_init(CONF_UART, &uart_serial_options);
 }
-#endif
 
 /************************************************************************/
 /*    Map function form Arduino                                         */
@@ -107,6 +106,10 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 */
 static void artnetToCommand(void)
 {
+	__disable_irq(); // Set PRIMASK
+
+	//NVIC_DisableIRQ(GMAC_IRQn);
+	
 	uint8_t nodeFunction;
 	uint8_t currentNode = 0;
 	dataOut.srcNode = 0;
@@ -173,14 +176,16 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
-				printf("transmission failed\n\r");
+#ifdef _DEBUG_
+	printf("transmission failed\n\r");
+#endif
 			}
 			
 #ifdef _DEBUG_
 	printf("disable sensor node %d\r\n", currentNode);
 #endif			
 		}
-		if (nodeFunction >= 31 && nodeFunction <= 60)
+		else if (nodeFunction >= 31 && nodeFunction <= 60)
 		{
 			//active_hue
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -189,14 +194,16 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
 	printf("Sensor active_hue node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 61 && nodeFunction <= 90)
+		else if (nodeFunction >= 61 && nodeFunction <= 90)
 		{
 			//active_sat
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
@@ -205,30 +212,34 @@ static void artnetToCommand(void)
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
 	printf("Sensor active_sat node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 91 && nodeFunction <= 120)
+		else if (nodeFunction >= 91 && nodeFunction <= 120)
 		{
 			//active_int
 			nRF24_openWritingPipe(listeningPipes[currentNode]);
 			dataOut.destNode = currentNode;
-			dataOut.senCommand = active_sat;
+			dataOut.senCommand = active_int;
 			
 			if(!nRF24_write(&dataOut, sizeof(dataOut)))
 			{
+				#ifdef _DEBUG_
 				printf("transmission failed\n\r");
+				#endif
 			}
 			
 #ifdef _DEBUG_
 	printf("Sensor active_sat node %d\r\n", currentNode);
 #endif
 		}
-		if (nodeFunction >= 121 && nodeFunction <= 150)
+		else if (nodeFunction >= 121 && nodeFunction <= 150)
 		{
 			//receive_hue
 		}
@@ -247,6 +258,9 @@ static void artnetToCommand(void)
 		
 		currentNode++;
 	}//end for-loop
+	__enable_irq(); // Clear PRIMASK
+	//NVIC_EnableIRQ(GMAC_IRQn);
+
 }
 
 int main (void)
@@ -255,15 +269,13 @@ int main (void)
 	sysclk_init();
 	board_init();
 	
-#ifdef _DEBUG_
 	/* Initialize the console UART. */
 	configure_console();
-#endif
-
 	puts(STRING_HEADER);
-	
+
+	//functies zijn overbodig omdat feedback niet gegeven kan worden
 	fill_ArtNode(&ArtNode);
-	fill_ArtPollReply(&ArtPollReply, &ArtNode);	
+	//fill_ArtPollReply(&ArtPollReply, &ArtNode);	
 
 	if (!init_gmac_ethernet())
 	{
@@ -297,10 +309,11 @@ int main (void)
 		if (GMAC_OK == read_dev_gmac()) {
 			if (ul_frm_size_rx > 0) {
 				// Handle input frame
-				if(handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx))
+				if(handleGMAC_Packet((uint8_t *) gs_uc_eth_buffer_rx, ul_frm_size_rx)){
 					artnetToCommand();
-			}//end of process
-		}
+				}//end handle 
+			}//end of framesize
+		}//end read_GMAC
 	}//end of loop
 }//end of program
 
@@ -314,7 +327,7 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 	p_ethernet_header_t p_eth = (p_ethernet_header_t) p_uc_data;
 	p_T_ArtPoll p_artPoll_packet = (p_T_ArtPoll) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 	p_T_ArtDmx p_artDmx_packet = (p_T_ArtDmx) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
-	p_T_ArtAddress p_artAdress_packet = (p_T_ArtAddress) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
+	//p_T_ArtAddress p_artAdress_packet = (p_T_ArtAddress) (p_uc_data + ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + ICMP_HEADER_SIZE);
 	uint16_t eth_pkt_format = SWAP16(p_eth->et_protlen);
 	uint32_t hdr_len = ETH_HEADER_SIZE + ETH_IP_HEADER_SIZE + UDP_HEADER_SIZE;
 	
@@ -322,7 +335,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 		p_ip_header_t p_ip = (p_ip_header_t) (p_uc_data+ ETH_HEADER_SIZE);
 		if (p_ip->ip_p == IP_PROT_UDP){
 			/*Check on added Art-Net header*/
-			//printf("M: UDP\r\n");
+#ifdef _DEBUG_
+	printf("M: UDP\r\n");
+#endif
 /************************************************************************/
 /* Controle op Art-Net anders uitvoeren                                 */
 /************************************************************************/
@@ -337,7 +352,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						printf("M: DMX\r\n");
+#ifdef _DEBUG_
+	printf("M: DMX\r\n");
+#endif
 						if(p_artDmx_packet->SubUni == ArtNode.swout[0])
 						{
 							//memcpy (artnet_data_buffer, (uint8_t *)packet->Data, MaxDataLength);
@@ -351,16 +368,18 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						printf("M: ArtPoll\r\n");
+#ifdef _DEBUG_
+	printf("M: ArtPoll\r\n");
+#endif
 						//handle_poll(p_artPoll_packet, p_uc_data);
 						if((p_artPoll_packet->Flags & 8) == 1) // controller say: send unicast reply
 						{
-							send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
+							//send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
 							//printf("M: ArtPollReply Unicast\r\n");
 						}
 						else // controller say: send broadcast reply
 						{
-							send_reply(BROADCAST, p_uc_data, (uint8_t *)&ArtPollReply);
+							//send_reply(BROADCAST, p_uc_data, (uint8_t *)&ArtPollReply);
 							//printf("M: ArtPollReply Broadcast\r\n");
 						}
 						return 0;
@@ -378,7 +397,7 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 						return 0;
 					}
 					else{*/
-						handle_address(p_artAdress_packet, p_uc_data);
+						//handle_address(p_artAdress_packet, p_uc_data);
 						return 0;
 					//}
 				}
@@ -395,7 +414,9 @@ bool handleGMAC_Packet(uint8_t *p_uc_data, uint32_t ul_size){
 		return 0;
 	}
 	else{
-		printf("=== Default w_pkt_format= 0x%X===\n\r", eth_pkt_format);
+#ifdef _DEBUG_
+	printf("=== Default w_pkt_format= 0x%X===\n\r", eth_pkt_format);
+#endif
 		return 0;	
 	}
 	return 1;
@@ -458,7 +479,7 @@ void fill_ArtNode(T_ArtNode *node)
 	node->swremote   = 0;
 	node->style      = 0;        // StNode style - A DMX to/from Art-Net device
 }
-
+/*
 void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
 {
 	//fill to 0's
@@ -496,11 +517,13 @@ void fill_ArtPollReply(T_ArtPollReply *poll_reply, T_ArtNode *node)
 	poll_reply->SwRemote        = node->swremote;
 	poll_reply->Style           = node->style;
 } 
-
+*/
 void handle_address(p_T_ArtAddress *packet, uint8_t *p_uc_data) //Not properly implemented yet
 {
 	send_reply(UNICAST, p_uc_data, (uint8_t *)&ArtPollReply);
+#ifdef _DEBUG_
 	printf("M: Address unicast\r\n");
+#endif
 }
 
 T_ArtPacketType get_packet_type(uint8_t *packet) //this get artnet packet type
@@ -554,16 +577,18 @@ void send_reply(uint8_t mode_broadcast, uint8_t *p_uc_data, uint8_t *packet)
 		}
 		ul_rc = gmac_dev_write(&gs_gmac_dev, *p_uc_data, GMAC_QUE_0, ul_size, NULL);
 	}
+	
 #ifdef _DEBUG_
 	if (ul_rc != GMAC_OK)
 	{
-		printf("E: ArtPollReply not send");
+	printf("E: ArtPollReply not send");
 	}
 	else
 	{
-		printf("M: ArtPollReply send\r\n");
+	printf("M: ArtPollReply send\r\n");
 	}
-#endif	
+#endif
+	
 }
 
 /// @cond 0

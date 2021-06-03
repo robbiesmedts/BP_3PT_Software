@@ -37,7 +37,7 @@
         If disabled the controller wille poll the nRF module for data. (Irritating child...)
 */
 //#define DEBUG
-//#define CONTINIOUS
+#define CONTINIOUS
 #define INTERRUPT
 
 #include <SPI.h>
@@ -179,7 +179,7 @@ void loop() {
   if(dataIn.destNode == localAddr){
     switch (dataIn.senCommand){
     case disabled: 
-      fill_solid(leds, NUM_LEDS, CHSV(dataIn.hue, dataIn.saturation, dataIn.intensity));
+      fill_solid(leds, NUM_LEDS, CHSV(deskHue, deskSat, deskInt));
       break;
 
     case active_hue: //read sensor and add it to the hue value of the lightingdesk
@@ -190,7 +190,13 @@ void loop() {
   printf("%d\n\r", map_z);
 #endif
       //mapped raw value
-      calcSensorVal = deskHue + AXIS;
+      inBetween = deskHue + AXIS;
+        if (inBetween > 0 && inBetween < 255)
+          calcSensorVal = (uint8_t)inBetween;
+        if (inBetween < 0)
+          calcSensorVal = 0;
+        if (inBetween > 255)
+          calcSensorVal = 255;
       fill_solid(leds, NUM_LEDS, CHSV(calcSensorVal, dataIn.saturation, dataIn.intensity));
       break;
 
@@ -236,8 +242,9 @@ void loop() {
 printf("case not implemented %d", dataIn.senCommand);
 #endif
       break;      
-
-      FastLED.show();
+    }// end switch
+    
+    FastLED.show();
 /* delay om uitvoering te vertragen tot 40Hz
  * uitvoering wordt vertraagd met 25 ms 
  * We gaan er van uit dat al de rest "instant" wordt uitgevoerd. 
@@ -247,7 +254,6 @@ printf("case not implemented %d", dataIn.senCommand);
 printf("Display LED\n\r");
 #endif
       delay(24);
-    }// end switch
   }// end if
   if(dataIn.destNode != localAddr){ //data comes from or is destined to other node
     switch (dataIn.senCommand){
