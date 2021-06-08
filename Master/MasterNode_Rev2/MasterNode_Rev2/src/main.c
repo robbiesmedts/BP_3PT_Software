@@ -236,7 +236,7 @@ static void artnetToCommand(void)
 			}
 			
 #ifdef _DEBUG_
-	printf("Sensor active_sat node %d\r\n", currentNode);
+	printf("Sensor active_int node %d\r\n", currentNode);
 #endif
 		}
 		else if (nodeFunction >= 121 && nodeFunction <= 150)
