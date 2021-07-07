@@ -6559,15 +6559,15 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   402850:	d060      	beq.n	402914 <main+0x1c4>
   402852:	fa5f fa84 	uxtb.w	sl, r4
 		nodeFunction = artnet_data_buffer[i++]; //use i, then increment
-  402856:	782e      	ldrb	r6, [r5, #0]
+  402856:	786e      	ldrb	r6, [r5, #1]
 		dataOut.hue = artnet_data_buffer[i++];
-  402858:	786a      	ldrb	r2, [r5, #1]
+  402858:	78aa      	ldrb	r2, [r5, #2]
   40285a:	713a      	strb	r2, [r7, #4]
 		dataOut.saturation = artnet_data_buffer[i++];
-  40285c:	78ab      	ldrb	r3, [r5, #2]
+  40285c:	78eb      	ldrb	r3, [r5, #3]
   40285e:	717b      	strb	r3, [r7, #5]
 		dataOut.intensity = artnet_data_buffer[i];
-  402860:	78e9      	ldrb	r1, [r5, #3]
+  402860:	7929      	ldrb	r1, [r5, #4]
   402862:	70f9      	strb	r1, [r7, #3]
 	printf("Node %d | HSV %d, %d, %d\r\n", currentNode, dataOut.hue, dataOut.saturation, dataOut.intensity);
   402864:	9404      	str	r4, [sp, #16]
@@ -11785,7 +11785,7 @@ static inline void stdio_serial_init(volatile void *usart, const usart_serial_op
   405da0:	202d2d0a 454d4153 582d3037 20444c50     .-- SAME70-XPLD 
   405db0:	0a0d2d2d 43202d2d 69706d6f 3a64656c     --..-- Compiled:
   405dc0:	6e754a20 20313220 31323032 3a393020      Jun 21 2021 09:
-  405dd0:	333a3534 2d2d2030 0000000d 4d202d2d     45:30 --....-- M
+  405dd0:	353a3635 2d2d2033 0000000d 4d202d2d     56:53 --....-- M
   405de0:	25204341 78253a78 3a78253a 253a7825     AC %x:%x:%x:%x:%
   405df0:	78253a78 00000d0a 49202d2d 25202050     x:%x....-- IP  %
   405e00:	64252e64 2e64252e 0d0a6425 00000000     d.%d.%d.%d......
